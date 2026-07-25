@@ -62,6 +62,7 @@ old_label_removal,hours,allowed
 product_marking,items,allowed
 product_marking,labels,allowed
 product_marking,hours,allowed
+product_marking,orders,allowed
 kitting,sets,allowed
 kitting,items,allowed
 kitting,hours,allowed
@@ -110,6 +111,7 @@ storage,box_days,allowed
 storage,pallet_days,allowed
 storage,cargo_place_days,allowed
 storage,volume_m3_days,allowed
+storage,liter_days,allowed
 secure_storage,item_days,allowed
 secure_storage,box_days,allowed
 secure_storage,pallet_days,allowed
@@ -127,6 +129,7 @@ outbound_dispatch,cargo_places,allowed
 outbound_dispatch,vehicles,allowed
 outbound_dispatch,hours,allowed
 outbound_dispatch,items,allowed
+outbound_dispatch,liters,allowed
 marketplace_delivery,deliveries,allowed
 marketplace_delivery,vehicles,allowed
 marketplace_delivery,boxes,allowed
@@ -136,6 +139,7 @@ marketplace_delivery,weight_kg,allowed
 marketplace_delivery,volume_m3,allowed
 marketplace_delivery,distance_km,allowed
 marketplace_delivery,items,allowed
+marketplace_delivery,liters,allowed
 return_pickup,items,allowed
 return_pickup,boxes,allowed
 return_pickup,pallets,allowed

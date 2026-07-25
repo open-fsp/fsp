@@ -12,7 +12,7 @@ dimension_measurement,Измерение габаритов и веса,items; b
 putaway,Размещение на хранение,items; boxes; pallets; cargo_places; volume_m3; hours,товар; короб; паллета; грузовое место; м³; час,зона хранения,storage_zone; handling_unit,Перемещение в адрес хранения,base
 Обработка
 old_label_removal,Удаление старой маркировки,items; labels; hours,товар; этикетка или стикер; час,тип маркировки,marking_type,Снятие старого ШК или стикера,base
-product_marking,Нанесение маркировки,items; labels; hours,товар; этикетка или стикер; час,тип маркировки,marking_type,Печать и нанесение маркировки,base
+product_marking,Нанесение маркировки,items; labels; hours; orders,товар; этикетка или стикер; час; заказ,тип маркировки,marking_type,Печать и нанесение маркировки,base
 kitting,Комплектация набора,sets; items; hours,набор; товар; час,состав набора,kit_composition,Объединение нескольких SKU,base
 promotional_insert,Вложение листовки или подарка,orders; items; inserts; hours,заказ; товар; вложение; час,тип вложения,insert_type,Промоматериалы и образцы,base
 repacking,Переупаковка товара,items; orders; boxes; pallets; hours,товар; заказ; короб; паллета; час,исходная / новая упаковка,source_packaging_type; target_packaging_type,Замена или восстановление упаковки,base
@@ -28,12 +28,12 @@ carton_formation,Формирование короба,boxes; hours,короб; 
 pallet_formation,Паллетирование,pallets; boxes; cargo_places; hours,паллета; короб; грузовое место; час,схема укладки,pallet_layout,Размещение коробов на паллете,base
 pallet_wrapping,Обмотка паллеты плёнкой,pallets; layers; hours,паллета; слой обмотки; час,количество слоёв,wrap_layers,Стрейч-упаковка паллеты,base
 Хранение
-storage,Хранение,item_days; box_days; pallet_days; cargo_place_days; volume_m3_days,товаро-день; коробо-день; паллето-день; место-день; м³-день,зона; режим хранения,storage_zone; storage_mode; handling_unit,Базовое хранение,base
+storage,Хранение,item_days; box_days; pallet_days; cargo_place_days; volume_m3_days; liter_days,товаро-день; коробо-день; паллето-день; место-день; м³-день; литро-день,зона; режим хранения,storage_zone; storage_mode; handling_unit,Базовое хранение,base
 secure_storage,Ответственное хранение,item_days; box_days; pallet_days; cargo_place_days; volume_m3_days; declared_value_rub,"товаро-день; коробо-день; паллето-день; место-день; м³-день; объявленная стоимость, ₽",уровень доступа,access_level,Для ценных товаров,base
 oversize_storage,Хранение КГТ,item_days; pallet_days; cargo_place_days; volume_m3_days,товаро-день; паллето-день; место-день; м³-день,зона КГТ,oversize_zone,Для крупногабаритных товаров,base
 Отгрузка и доставка
-outbound_dispatch,Отгрузка,items; orders; boxes; pallets; cargo_places; vehicles; hours,товар; заказ; короб; паллета; грузовое место; машина; час,FBO / FBS,fulfillment_scheme; handling_unit,Передача груза перевозчику,base
-marketplace_delivery,Доставка до маркетплейса,items; deliveries; vehicles; boxes; pallets; cargo_places; weight_kg; volume_m3; distance_km,товар; рейс; машина; короб; паллета; грузовое место; кг; м³; км,маршрут; маркетплейс,route_id; marketplace; handling_unit,Доставка до склада или СЦ,base
+outbound_dispatch,Отгрузка,items; orders; boxes; pallets; cargo_places; vehicles; hours; liters,товар; заказ; короб; паллета; грузовое место; машина; час; литр,FBO / FBS,fulfillment_scheme; handling_unit,Передача груза перевозчику,base
+marketplace_delivery,Доставка до маркетплейса,items; deliveries; vehicles; boxes; pallets; cargo_places; weight_kg; volume_m3; distance_km; liters,товар; рейс; машина; короб; паллета; грузовое место; кг; м³; км; литр,маршрут; маркетплейс,route_id; marketplace; handling_unit,Доставка до склада или СЦ,base
 return_pickup,Забор возвратов,items; boxes; pallets; cargo_places; vehicles; deliveries; distance_km; weight_kg; volume_m3; hours,товар; короб; паллета; грузовое место; машина; рейс; км; кг; м³; час,маршрут,route_id,Забор возвратного потока,base
 Возвраты
 return_acceptance,Приёмка возврата,items; orders; boxes; hours,товар; заказ; короб; час,источник возврата,return_source,Регистрация возврата,base

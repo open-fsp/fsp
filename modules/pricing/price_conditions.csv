@@ -12,6 +12,7 @@ weight_kg,Габариты,decimal,gt; gte; lt; lte; between,Фактическ�
 max_side_cm,Габариты,decimal,gt; gte; lt; lte; between,Максимальная сторона
 sum_sides_cm,Габариты,decimal,gt; gte; lt; lte; between,Сумма сторон
 volume_m3,Габариты,decimal,gt; gte; lt; lte; between,Физический объём
+volume_l,Габариты,decimal,gt; gte; lt; lte; between,Физический объём в литрах
 volumetric_weight_kg,Габариты,decimal,gt; gte; lt; lte; between,Объёмный вес
 chargeable_weight_kg,Габариты,decimal,gt; gte; lt; lte; between,Тарифицируемый вес
 fulfillment_scheme,Операция,enum,eq; in,FBO/FBS
