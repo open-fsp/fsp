@@ -58,6 +58,7 @@ marketplace_account_management,marketplace,required
 expiration_check,expiration_check_type,required
 serial_number_recording,serial_number_format,required
 storage,inventory_rotation_method,optional,,FIFO,Метод складской ротации
+storage,stock_state,optional,,in_storage,За какую стадию оператор берёт хранение; по умолчанию только за товар на хранении
 supplier_pickup,pickup_source,optional,,supplier,Источник забора
 photo_documentation,photo_type,required
 photo_documentation,image_count,optional,,1
