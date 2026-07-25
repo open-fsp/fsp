@@ -1,0 +1,14 @@
+Операторы условий
+Единая семантика операторов для price_rule_conditions и price_adjustment_conditions.
+Оператор,Формат value,Семантика,Поведение при null,Типы полей,Комментарий
+eq,scalar,"true, если поле равно value",false,enum; id; boolean; string
+neq,scalar,"true, если поле не равно value",false,enum; id; boolean; string
+in,array,"true, если поле входит в список value",false,enum; id; string
+not_in,array,"true, если поле не входит в список value",false,enum; id; string
+exists,boolean,проверяет наличие непустого поля,проверяется явно,any,value=true/false
+gt,scalar,поле > value,false,decimal; integer; date
+gte,scalar,поле >= value,false,decimal; integer; date
+lt,scalar,поле < value,false,decimal; integer; date
+lte,scalar,поле <= value,false,decimal; integer; date
+between,object,from <= поле < to,false,decimal; integer; date,"value={from,to}; верхняя граница исключена"
+is_descendant_of,scalar,категория входит в ветку value с учётом версии классификатора,false,path,сам узел также считается совпадением

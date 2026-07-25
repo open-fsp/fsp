@@ -1,0 +1,34 @@
+{
+  "module": "core",
+  "title": "FSP Core",
+  "version": "1.0",
+  "status": "stable",
+  "summary": "Общий язык: услуги, единицы начисления, категории товара, габаритные профили, оператор и склад.",
+  "depends": [],
+  "registries": [
+    "catalog_services",
+    "categories",
+    "category_links",
+    "parameters",
+    "service_parameters",
+    "billing_metrics",
+    "service_metrics",
+    "materials",
+    "exclusions",
+    "size_profiles",
+    "derived_metrics",
+    "category_mapping",
+    "operators",
+    "rules"
+  ],
+  "rule_prefixes": [
+    "CAT",
+    "SIZE",
+    "MAP",
+    "DATA",
+    "SCOPE",
+    "PROFILE"
+  ],
+  "schema": "schema.json",
+  "profile": "../../profile/fsp-profile.schema.json"
+}

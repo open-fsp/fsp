@@ -1,0 +1,46 @@
+---
+# Витрина openfsp.ru: статика из site/dist за общим Traefik контент-сервера.
+# Сертификат — тот же резолвер mytlschallenge, что у остальных сайтов сервера.
+
+services:
+  openfsp_nginx:
+    image: nginx:alpine
+    container_name: openfsp_nginx
+    restart: unless-stopped
+    volumes:
+      - /opt/openfsp/dist:/usr/share/nginx/html:ro
+      - /opt/openfsp/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.openfsp.rule=Host(`openfsp.ru`)
+      - traefik.http.routers.openfsp.entrypoints=web,websecure
+      - traefik.http.routers.openfsp.tls=true
+      - traefik.http.routers.openfsp.tls.certresolver=mytlschallenge
+      - traefik.http.services.openfsp.loadbalancer.server.port=80
+      - traefik.http.middlewares.openfsp.headers.SSLRedirect=true
+      - traefik.http.middlewares.openfsp.headers.SSLHost=openfsp.ru
+      - traefik.http.middlewares.openfsp.headers.STSSeconds=315360000
+      - traefik.http.middlewares.openfsp.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.openfsp.headers.STSPreload=true
+      - traefik.http.middlewares.openfsp.headers.forceSTSHeader=true
+      - traefik.http.middlewares.openfsp.headers.browserXSSFilter=true
+      - traefik.http.middlewares.openfsp.headers.contentTypeNosniff=true
+
+      # www — редирект на apex, а не зеркало: адреса схем ($id) прописаны на apex,
+      # двух рабочих вариантов одного документа быть не должно
+      - traefik.http.routers.openfsp_www.rule=Host(`www.openfsp.ru`)
+      - traefik.http.routers.openfsp_www.entrypoints=web,websecure
+      - traefik.http.routers.openfsp_www.tls=true
+      - traefik.http.routers.openfsp_www.tls.certresolver=mytlschallenge
+      - traefik.http.routers.openfsp_www.middlewares=openfsp_www_redirect
+      - traefik.http.routers.openfsp_www.service=openfsp
+      - traefik.http.middlewares.openfsp_www_redirect.redirectregex.regex=^https?://www\.openfsp\.ru/(.*)
+      - traefik.http.middlewares.openfsp_www_redirect.redirectregex.replacement=https://openfsp.ru/$${1}
+      - traefik.http.middlewares.openfsp_www_redirect.redirectregex.permanent=true
+
+networks:
+  traefik:
+    external: true

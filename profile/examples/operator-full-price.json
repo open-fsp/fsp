@@ -1,0 +1,26 @@
+{
+  "fsp": "1.0",
+  "party": {
+    "role": "operator",
+    "id": "sklad",
+    "name": "Складсервис",
+    "contact_channel": "tg:@sklad_ff"
+  },
+  "modules": {
+    "core": { "versions": ["1.0"] },
+    "pricing": { "versions": ["1.0"], "level": "L3" },
+    "capacity": { "versions": ["1.0"] }
+  },
+  "extensions": {
+    "x-sklad:route-cutoff-fee": {
+      "module": "pricing",
+      "versions": ["1.0"],
+      "spec": "https://sklad.example/fsp/route-cutoff-fee",
+      "candidate_for_standard": true
+    }
+  },
+  "endpoints": {
+    "capacity": "https://sklad.example/fsp/capacity"
+  },
+  "updated_at": "2026-07-25T10:00:00+03:00"
+}

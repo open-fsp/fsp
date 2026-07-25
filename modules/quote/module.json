@@ -1,0 +1,16 @@
+{
+  "module": "quote",
+  "title": "FSP Quote",
+  "version": "1.0",
+  "status": "stable",
+  "summary": "Запрос сметы (операции + объём) и ответ: подошедшие операторы, смета, применённые допущения, коды непокрытия.",
+  "depends": ["core", "pricing", "capacity"],
+  "registries": [
+    "quote_model",
+    "unmet_reasons",
+    "rules"
+  ],
+  "rule_prefixes": ["QUOTE"],
+  "schema": "schema.json",
+  "api": "../../api/quote.openapi.yaml"
+}

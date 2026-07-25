@@ -1,0 +1,25 @@
+{
+  "module": "pricing",
+  "title": "FSP Pricing",
+  "version": "1.0",
+  "status": "stable",
+  "summary": "Как оператор описывает свой прайс: тарифный план, предложения, правила цены, условия, модификаторы, ступени.",
+  "depends": ["core"],
+  "registries": [
+    "price_model",
+    "price_conditions",
+    "condition_operators",
+    "calculation_methods",
+    "tier_variables",
+    "tier_scopes",
+    "conformance_levels",
+    "rules"
+  ],
+  "rule_prefixes": ["PRICE", "TIME", "STORAGE"],
+  "schema": "schema.json",
+  "conformance": {
+    "levels_registry": "conformance_levels",
+    "methods_registry": "calculation_methods",
+    "declared_as": "level"
+  }
+}

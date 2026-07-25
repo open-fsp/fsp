@@ -1,0 +1,37 @@
+---
+import Base from "../layouts/Base.astro";
+import { renderMarkdown, readDoc, profileExamples, profileSchema } from "../lib/standard.js";
+
+const body = renderMarkdown(readDoc("profile", "README.md"));
+const examples = profileExamples();
+const schema = profileSchema();
+---
+
+<Base
+  title="Манифест и согласование"
+  description="Манифест /.well-known/fsp: сторона объявляет поддерживаемые модули, версии и уровни. Правила согласования PROFILE-001…008."
+>
+  <p class="crumbs"><a href="/">FSP</a> / Манифест</p>
+  <h1>Манифест и согласование</h1>
+  <p class="lead">
+    Сторона не договаривается о формате в переписке, а публикует манифест по адресу
+    <code>/.well-known/fsp</code>. Первый шаг любого обмена — забрать манифест другой стороны и
+    свести его со своим.
+  </p>
+
+  <div class="prose" set:html={body} />
+
+  <h2 id="schema">Схема манифеста</h2>
+  <p>
+    <a href="/1.0/profile/fsp-profile.schema.json"><code>/1.0/profile/fsp-profile.schema.json</code></a>
+    — JSON Schema {schema.$schema.includes("2020-12") ? "2020-12" : ""}.
+  </p>
+
+  <h2 id="examples">Примеры</h2>
+  {examples.map((e) => (
+    <>
+      <h3><code>{e.file}</code></h3>
+      <pre><code>{e.json}</code></pre>
+    </>
+  ))}
+</Base>

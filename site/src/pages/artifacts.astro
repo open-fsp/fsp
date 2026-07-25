@@ -1,0 +1,95 @@
+---
+import Base from "../layouts/Base.astro";
+import { MODULES, manifest, registry, schemaOf, ROOT } from "../lib/standard.js";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+
+const mods = MODULES.map(manifest).filter((m) => m.status !== "planned");
+const appendixRegs = readdirSync(join(ROOT, "appendix"))
+  .filter((f) => f.endsWith(".csv"))
+  .sort()
+  .map((f) => f.replace(/\.csv$/, ""));
+---
+
+<Base
+  title="Машиночитаемые артефакты"
+  description="Схемы модулей, реестры в JSON и CSV, схема манифеста, OpenAPI модуля Quote — по постоянным адресам."
+>
+  <p class="crumbs"><a href="/">FSP</a> / Артефакты</p>
+  <h1>Машиночитаемые артефакты</h1>
+  <p class="lead">
+    Всё, что нужно реализации, отдаётся по постоянным адресам под <code>/1.0/</code>. Адреса
+    совпадают с <code>$id</code> схем, поэтому ссылки внутри схем разрешаются как есть.
+  </p>
+
+  <h2 id="schemas">Схемы модулей</h2>
+  <ul class="files">
+    {mods.filter((m) => schemaOf(m.module)).map((m) => (
+      <li>
+        <a class="path" href={`/1.0/${m.module}/schema.json`}>/1.0/{m.module}/schema.json</a>
+        <span class="what">{m.title} — {Object.keys(schemaOf(m.module).$defs).length} определений</span>
+      </li>
+    ))}
+    <li>
+      <a class="path" href="/1.0/profile/fsp-profile.schema.json">/1.0/profile/fsp-profile.schema.json</a>
+      <span class="what">Манифест <code>/.well-known/fsp</code></span>
+    </li>
+  </ul>
+
+  <h2 id="api">API</h2>
+  <ul class="files">
+    <li>
+      <a class="path" href="/1.0/quote/openapi.yaml">/1.0/quote/openapi.yaml</a>
+      <span class="what">FSP Quote 1.0 — <code>POST /quote</code>, <code>POST /quote/free-form</code></span>
+    </li>
+  </ul>
+
+  <h2 id="manifests">Манифесты модулей</h2>
+  <ul class="files">
+    {MODULES.map((m) => (
+      <li>
+        <a class="path" href={`/1.0/${m}/module.json`}>/1.0/{m}/module.json</a>
+        <span class="what">{manifest(m).status}</span>
+      </li>
+    ))}
+  </ul>
+
+  <h2 id="registries">Реестры</h2>
+  <p>Каждый реестр доступен в JSON и CSV. JSON — массив объектов с колонками реестра как ключами.</p>
+  {mods.map((m) => (
+    <>
+      <h3><a href={`/modules/${m.module}/`}>{m.title}</a></h3>
+      <ul class="files">
+        {m.registries.map((r) => (
+          <li>
+            <span class="path">/1.0/{m.module}/{r}</span>
+            <span class="what">
+              <a href={`/1.0/${m.module}/${r}.json`}>.json</a> ·
+              <a href={`/1.0/${m.module}/${r}.csv`}>.csv</a> ·
+              <a href={registry(m.module, r).href}>таблица</a>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  ))}
+
+  <h3>Приложение (вне стандарта)</h3>
+  <ul class="files">
+    {appendixRegs.map((r) => (
+      <li>
+        <span class="path">/1.0/appendix/{r}</span>
+        <span class="what">
+          <a href={`/1.0/appendix/${r}.json`}>.json</a> ·
+          <a href={`/1.0/appendix/${r}.csv`}>.csv</a> ·
+          <a href={`/registry/appendix/${r}/`}>таблица</a>
+        </span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>Для агентов</h2>
+  <p>
+    Краткая карта стандарта в одном файле: <a href="/llms.txt"><code>/llms.txt</code></a>.
+  </p>
+</Base>

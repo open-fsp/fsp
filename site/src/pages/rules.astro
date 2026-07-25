@@ -1,0 +1,42 @@
+---
+import Base from "../layouts/Base.astro";
+import { allRules, MODULES } from "../lib/standard.js";
+
+const rules = allRules();
+const byArea = [...MODULES, "appendix"]
+  .map((area) => ({ area, items: rules.filter((r) => r.area === area) }))
+  .filter((g) => g.items.length);
+const label = {
+  core: "FSP Core", pricing: "FSP Pricing", capacity: "FSP Capacity",
+  quote: "FSP Quote", appendix: "Приложение (вне стандарта)",
+};
+---
+
+<Base
+  title="Нормативные правила"
+  description={`Все ${rules.length} нормативных правил FSP по модулям: каталог, цена, мощности, смета, манифест.`}
+>
+  <p class="crumbs"><a href="/">FSP</a> / Правила</p>
+  <h1>Нормативные правила</h1>
+  <p class="lead">
+    Всё, что обязана делать реализация. Правило принадлежит модулю, префикс объявлен в его
+    манифесте. Ссылки на правила встречаются в схемах и в тексте спецификаций.
+  </p>
+
+  <div class="filter">
+    {byArea.map((g) => <a href={`#${g.area}`}>{label[g.area]} · {g.items.length}</a>)}
+  </div>
+
+  {byArea.map((g) => (
+    <>
+      <h2 id={g.area}>
+        {g.area === "appendix" ? label[g.area] : <a href={`/modules/${g.area}/`}>{label[g.area]}</a>}
+      </h2>
+      <ul class="rules">
+        {g.items.map((r) => (
+          <li><code id={r.id}>{r.id}</code><span>{r.text}</span></li>
+        ))}
+      </ul>
+    </>
+  ))}
+</Base>

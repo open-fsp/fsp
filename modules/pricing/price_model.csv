@@ -1,0 +1,76 @@
+Модель тарифов — FSP Pricing 1.0
+Как оператор описывает свой прайс: rate_cards → offers → price_rules → price_tiers/price_adjustments. Маршруты и графики отправки описываются в FSP Capacity; здесь route_id — только входное поле условия.
+Сущность,Поле,Тип,Обязательно,Назначение,Пример
+rate_cards,id,id,да,Идентификатор тарифного плана,rate_card_123
+rate_cards,provider_id,id,да,Фулфилмент оператор,ff_123
+rate_cards,currency,enum,да,Валюта,RUB
+rate_cards,vat_mode,enum,да,Режим НДС,included / excluded
+offers,id,id,да,Идентификатор предложения,offer_123
+offers,rate_card_id,id,да,Тарифный план,rate_card_123
+offers,primary_service_code,string,нет,Опциональная основная услуга для показа; полный состав хранится в offer_services,goods_acceptance
+offers,active,boolean,да,Признак доступности предложения,true
+price_rules,id,id,да,Идентификатор правила цены,price_rule_123
+price_rules,offer_id,id,да,Предложение ФФ,offer_123
+price_rules,calculation_method,enum,да,flat / per_unit / per_metric / tiered / minimum_charge / manual_quote,per_unit
+price_rules,billing_metric,enum,условно,"Код из реестра «Метрики тарификации»; обязателен для per_unit, per_metric и tiered",items
+price_rules,amount,decimal,условно,Ставка для flat/per_unit/per_metric; порог для minimum_charge; пусто для tiered/manual_quote,15
+price_rules,priority,integer,да,Уникален в рамках offer_id; меньшее число выбирается первым,100
+price_rule_conditions,id,id,да,Идентификатор условия,condition_123
+price_rule_conditions,price_rule_id,id,да,Правило цены,price_rule_123
+price_rule_conditions,condition_group,integer,да,Номер группы условий,1
+price_rule_conditions,field,enum,да,Поле контекста,weight_kg
+price_rule_conditions,operator,enum,да,Оператор,gte
+price_rule_conditions,value,typed,да,Значение условия,5
+price_tiers,id,id,да,Идентификатор диапазона,tier_123
+price_tiers,price_rule_id,id,да,Правило цены,price_rule_123
+price_tiers,metric,enum,нет,Устарело: шкала задаётся в price_rules.tier_variable. При заполнении обязано совпадать с ним,units_per_month
+price_tiers,quantity_from,decimal,да,Нижняя граница включительно,20000
+price_tiers,quantity_to,decimal,нет,Верхняя граница исключительно,50000
+price_tiers,amount,decimal,да,Ставка для диапазона,9
+price_adjustments,id,id,да,Идентификатор модификатора,adjustment_123
+price_adjustments,price_rule_id,id,да,Базовое правило цены,price_rule_123
+price_adjustments,adjustment_type,enum,да,Тип модификатора,fixed / percent / multiplier
+price_adjustments,value,decimal,да,Числовая величина модификатора,2
+price_adjustments,priority,integer,да,Уникален в рамках price_rule_id и stacking_group,100
+price_adjustment_conditions,id,id,да,Идентификатор условия модификатора,adjustment_condition_123
+price_adjustment_conditions,price_adjustment_id,id,да,Модификатор цены,adjustment_123
+price_adjustment_conditions,condition_group,integer,да,Номер группы условий,1
+price_adjustment_conditions,field,enum,да,Поле контекста,urgency
+price_adjustment_conditions,operator,enum,да,Оператор,eq
+price_adjustment_conditions,value,typed,да,Значение условия,urgent
+rate_cards,version,integer,да,Версия в рамках provider_id + series_code; комбинация уникальна,1
+rate_cards,status,enum,да,draft / active / retired,active
+rate_cards,effective_from,datetime,да,Начало действия включительно,2026-01-01T00:00:00+03:00
+rate_cards,effective_to,datetime,нет,Конец действия исключительно; пусто для открытого периода
+rate_cards,published_at,datetime,условно,Обязательно при status=active,2025-12-20T12:00:00+03:00
+rate_cards,vat_rate,decimal,да,Ставка НДС; 0 допустим,0.20
+rate_cards,volumetric_divisor_cm3_per_kg,decimal,условно,Обязателен при использовании volumetric_weight_kg,5000
+offers,source_name,string,нет,Исходное название строки прайса,Приёмка с размещением
+offers,source_row_ref,string,нет,Ссылка на источник или номер строки для аудита,price.xlsx!A17
+offer_services,id,id,да,Идентификатор компонента предложения,offer_service_123
+offer_services,offer_id,id,да,Ссылка на offers.id,offer_123
+offer_services,service_code,string,да,Ссылка на код стандартной услуги,goods_acceptance
+offer_services,quantity_rule,typed,нет,Правило количества компонента в пакете,1 / same_as_billing_quantity
+offer_services,included,boolean,да,Компонент включён в цену предложения,true
+price_rules,base_price_rule_id,id,условно,"Обязателен для minimum_charge; результат=max(базовый расчёт, amount)",price_rule_base_123
+price_rules,rounding_mode,enum,да,none / floor / ceil / half_up,ceil
+price_rules,rounding_step,decimal,да,Шаг округления тарифицируемого количества,1
+price_rules,minimum_billable_quantity,decimal,нет,Минимальное тарифицируемое количество до расчёта,1
+price_rules,time_basis,enum,условно,calendar_day / rolling_24h / started_hour / exact,calendar_day
+price_adjustments,application_base,enum,да,base_amount / current_total,current_total
+price_adjustments,stacking_group,string,нет,В одной группе разрешён только один применившийся модификатор,urgency
+offer_materials,id,id,да,Идентификатор материала предложения,offer_material_123
+offer_materials,offer_id,id,да,Ссылка на offers.id,offer_123
+offer_materials,material_code,string,да,Ссылка на Материалы.code,carton
+offer_materials,included_quantity,decimal,нет,"Количество материала, включённое без доплаты",1
+offer_materials,billing_metric,enum,условно,"База начисления, если материал платный",items
+offer_materials,amount,decimal,условно,"Цена материала; пусто, если полностью включён",25
+price_tiers,sequence,integer,да,Уникальный порядок диапазона в рамках price_rule_id,1
+rate_cards,source_document_ref,string,нет,Ссылка на исходный опубликованный прайс,drive_file_id
+rate_cards,money_scale,integer,да,Число знаков денежного округления,2
+rate_cards,series_code,string,да,Стабильный код логической линейки тарифов,standard_fulfillment
+rate_cards,previous_rate_card_id,id,нет,Предыдущая опубликованная версия для аудита цепочки,rate_card_122
+price_rules,tier_mode,enum,условно,"Обязателен при calculation_method=tiered; slab — вся величина по ставке итогового диапазона, progressive — величина делится по диапазонам",progressive
+price_rules,tier_variable,enum,условно,"Обязателен при calculation_method=tiered; код из реестра «Переменные диапазонов» — шкала, по которой режутся ступени",storage_age_days
+price_rules,tier_scope,enum,условно,"Обязателен при calculation_method=tiered; код из реестра «Области диапазонов» — группа, внутри которой шкала считается заново",batch
+price_tiers,tier_amount_type,enum,нет,rate — ставка за единицу тарифицируемого количества (по умолчанию); fixed — фиксированная сумма за попадание в диапазон,rate

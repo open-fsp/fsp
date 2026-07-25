@@ -1,0 +1,35 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Проверка целостности стандарта
+        run: python3 validate.py
+
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Установка зависимостей витрины
+        run: npm ci
+        working-directory: site
+      - name: Сборка витрины openfsp.ru
+        run: npm run build
+        working-directory: site
+      - name: Битые внутренние ссылки
+        run: python3 site/check_links.py

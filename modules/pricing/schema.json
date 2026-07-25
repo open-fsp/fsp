@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openfsp.ru/1.0/pricing/schema.json",
+  "title": "FSP Pricing 1.0",
+  "description": "Как оператор описывает свой прайс. Уровни соответствия L1/L2/L3 заданы реестром conformance_levels: L1 использует только rate_card, offer, offer_service, offer_material и price_rule; L2 добавляет условия и модификаторы; L3 добавляет ступени.",
+  "$defs": {
+    "calculation_method": {
+      "type": "string",
+      "enum": ["flat", "per_unit", "per_metric", "manual_quote", "minimum_charge", "tiered"],
+      "description": "Реестр calculation_methods; уровень поддержки указан там же"
+    },
+    "tier_mode": {
+      "type": "string",
+      "enum": ["slab", "progressive"],
+      "description": "slab — вся величина по ставке итогового диапазона; progressive — по частям (PRICE-017)"
+    },
+    "tier_variable": {
+      "type": "string",
+      "description": "Шкала ступеней; код из реестра tier_variables"
+    },
+    "tier_scope": {
+      "type": "string",
+      "description": "Группа, внутри которой шкала считается заново; код из реестра tier_scopes"
+    },
+    "condition_operator": {
+      "type": "string",
+      "enum": ["eq", "neq", "in", "not_in", "exists", "gt", "gte", "lt", "lte", "between", "is_descendant_of"]
+    },
+    "condition": {
+      "type": "object",
+      "description": "Условие применимости. Поле берётся только из реестра price_conditions; значения полей — входы контекста расчёта и на ссылочную целостность внутри модуля не проверяются. Условия одной группы объединяются AND, группы объединяются OR (PRICE-002).",
+      "required": ["condition_group", "field", "operator", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "condition_group": { "type": "integer", "minimum": 1 },
+        "field": { "type": "string", "description": "Код поля из реестра price_conditions" },
+        "operator": { "$ref": "#/$defs/condition_operator" },
+        "value": { "description": "Типизированное значение; тип задан полем условия" }
+      }
+    },
+    "rate_card": {
+      "type": "object",
+      "description": "Версионированный прайс оператора. На момент расчёта активна ровно одна версия (TIME-001).",
+      "required": ["id", "provider_id", "series_code", "version", "status", "currency", "vat_mode", "vat_rate", "money_scale", "effective_from"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "provider_id": { "type": "string", "description": "operator_id в FSP Core" },
+        "series_code": { "type": "string", "description": "Стабильный код линейки тарифов" },
+        "version": { "type": "integer", "minimum": 1 },
+        "status": { "type": "string", "enum": ["draft", "active", "retired"] },
+        "currency": { "type": "string", "description": "Код валюты ISO 4217" },
+        "vat_mode": { "type": "string", "enum": ["included", "excluded"] },
+        "vat_rate": { "type": "number", "minimum": 0 },
+        "money_scale": { "type": "integer", "minimum": 0, "description": "Число знаков денежного округления" },
+        "volumetric_divisor_cm3_per_kg": { "type": "number", "exclusiveMinimum": 0, "description": "Обязателен при использовании volumetric_weight_kg" },
+        "effective_from": { "type": "string", "format": "date-time" },
+        "effective_to": { "type": "string", "format": "date-time", "description": "Исключительно; пусто для открытого периода" },
+        "published_at": { "type": "string", "format": "date-time", "description": "Обязательно при status=active" },
+        "previous_rate_card_id": { "type": "string" },
+        "source_document_ref": { "type": "string" }
+      }
+    },
+    "offer": {
+      "type": "object",
+      "description": "Строка прайса как коммерческий пакет: одна строка может включать несколько стандартных услуг (CAT-002).",
+      "required": ["id", "rate_card_id", "active"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "rate_card_id": { "type": "string" },
+        "primary_service_code": { "$ref": "../core/schema.json#/$defs/service_code" },
+        "active": { "type": "boolean" },
+        "source_name": { "type": "string", "description": "Исходное название строки прайса" },
+        "source_row_ref": { "type": "string", "description": "Файл и ячейка источника для аудита" },
+        "services": { "type": "array", "items": { "$ref": "#/$defs/offer_service" } },
+        "materials": { "type": "array", "items": { "$ref": "#/$defs/offer_material" } }
+      }
+    },
+    "offer_service": {
+      "type": "object",
+      "required": ["id", "service_code", "included"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "offer_id": { "type": "string" },
+        "service_code": { "$ref": "../core/schema.json#/$defs/service_code" },
+        "quantity_rule": { "description": "Правило количества компонента в пакете" },
+        "included": { "type": "boolean" }
+      }
+    },
+    "offer_material": {
+      "type": "object",
+      "description": "Материалы хранятся отдельно от операций (CAT-003).",
+      "required": ["id", "material_code"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "offer_id": { "type": "string" },
+        "material_code": { "type": "string", "description": "Код из реестра materials" },
+        "included_quantity": { "type": "number", "minimum": 0 },
+        "billing_metric": { "$ref": "../core/schema.json#/$defs/billing_metric" },
+        "amount": { "type": "number", "description": "Пусто, если материал полностью включён в цену" }
+      }
+    },
+    "price_rule": {
+      "type": "object",
+      "description": "Правило цены. Подходящие правила сортируются по priority по возрастанию, одинаковый priority в одном offer запрещён (PRICE-009).",
+      "required": ["id", "offer_id", "calculation_method", "priority", "rounding_mode", "rounding_step"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "offer_id": { "type": "string" },
+        "calculation_method": { "$ref": "#/$defs/calculation_method" },
+        "billing_metric": { "$ref": "../core/schema.json#/$defs/billing_metric" },
+        "amount": { "type": "number", "description": "Ставка для flat/per_unit/per_metric, порог для minimum_charge; пусто для tiered и manual_quote (PRICE-006). Пустая цена не равна нулю (PRICE-003)" },
+        "priority": { "type": "integer" },
+        "base_price_rule_id": { "type": "string", "description": "Обязателен для minimum_charge (PRICE-012)" },
+        "rounding_mode": { "type": "string", "enum": ["none", "floor", "ceil", "half_up"] },
+        "rounding_step": { "type": "number", "exclusiveMinimum": 0 },
+        "minimum_billable_quantity": { "type": "number", "minimum": 0 },
+        "time_basis": { "type": "string", "enum": ["calendar_day", "rolling_24h", "started_hour", "exact"] },
+        "tier_mode": { "$ref": "#/$defs/tier_mode" },
+        "tier_variable": { "$ref": "#/$defs/tier_variable" },
+        "tier_scope": { "$ref": "#/$defs/tier_scope" },
+        "conditions": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+        "tiers": { "type": "array", "items": { "$ref": "#/$defs/price_tier" } },
+        "adjustments": { "type": "array", "items": { "$ref": "#/$defs/price_adjustment" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "calculation_method": { "const": "tiered" } }, "required": ["calculation_method"] },
+          "then": { "required": ["tier_mode", "tier_variable", "tier_scope", "tiers"] }
+        },
+        {
+          "if": { "properties": { "calculation_method": { "const": "minimum_charge" } }, "required": ["calculation_method"] },
+          "then": { "required": ["base_price_rule_id", "amount"] }
+        }
+      ]
+    },
+    "price_tier": {
+      "type": "object",
+      "description": "Диапазон ступени: quantity_from включена, quantity_to исключена; без дыр и пересечений (PRICE-013).",
+      "required": ["id", "sequence", "quantity_from", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "price_rule_id": { "type": "string" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "quantity_from": { "type": "number" },
+        "quantity_to": { "type": "number", "description": "Пусто у верхней открытой ступени" },
+        "amount": { "type": "number", "description": "Бесплатный диапазон задаётся явным amount=0 (PRICE-018)" },
+        "tier_amount_type": { "type": "string", "enum": ["rate", "fixed"], "default": "rate" }
+      }
+    },
+    "price_adjustment": {
+      "type": "object",
+      "description": "Модификатор цены; показывается отдельной строкой расчёта (PRICE-005).",
+      "required": ["id", "adjustment_type", "value", "priority", "application_base"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "price_rule_id": { "type": "string" },
+        "adjustment_type": { "type": "string", "enum": ["fixed", "percent", "multiplier"] },
+        "value": { "type": "number" },
+        "priority": { "type": "integer" },
+        "application_base": { "type": "string", "enum": ["base_amount", "current_total"] },
+        "stacking_group": { "type": "string", "description": "В одной группе применяется только один модификатор (PRICE-011)" },
+        "conditions": { "type": "array", "items": { "$ref": "#/$defs/condition" } }
+      }
+    }
+  }
+}

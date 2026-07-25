@@ -1,0 +1,75 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { MODULES, manifest, registry } from "../../../lib/standard.js";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+import { ROOT } from "../../../lib/standard.js";
+
+export function getStaticPaths() {
+  const paths = [];
+  for (const area of MODULES) {
+    for (const name of manifest(area).registries) {
+      paths.push({ params: { area, registry: name } });
+    }
+  }
+  for (const f of readdirSync(join(ROOT, "appendix"))) {
+    if (f.endsWith(".csv")) {
+      paths.push({ params: { area: "appendix", registry: f.replace(/\.csv$/, "") } });
+    }
+  }
+  return paths;
+}
+
+const { area, registry: name } = Astro.params;
+const reg = registry(area, name);
+const inStandard = area !== "appendix";
+const parent = inStandard ? manifest(area) : null;
+// колонки-коды показываем моноширинным, длинный текст — обычным
+const codeCol = reg.columns.map(
+  (c, i) => reg.rows.length > 0 && reg.rows.every((r) => r[i].length <= 34 && !/\s{2}|[.!?]\s/.test(r[i])),
+);
+---
+
+<Base
+  title={`${name} — ${inStandard ? parent.title : "приложение"}`}
+  description={reg.description || reg.title}
+  wide={reg.columns.length > 4}
+>
+  <p class="crumbs">
+    <a href="/">FSP</a> /
+    {inStandard ? (
+      <><a href="/modules/">Модули</a> / <a href={`/modules/${area}/`}>{area}</a></>
+    ) : (
+      <a href="/appendix/">Приложение</a>
+    )} / {name}
+  </p>
+  <h1>{reg.title}</h1>
+  {reg.description && <p class="lead">{reg.description}</p>}
+
+  {!inStandard && (
+    <div class="note">
+      <p>Этот реестр не входит в стандарт: приложение, доказывающее покрытие на реальных прайсах.</p>
+    </div>
+  )}
+
+  <p>
+    Строк: {reg.rows.length}. Машиночитаемо:
+    <a href={`/1.0/${area}/${name}.json`}>JSON</a> ·
+    <a href={`/1.0/${area}/${name}.csv`}>CSV</a>
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr>{reg.columns.map((c) => <th>{c}</th>)}</tr></thead>
+      <tbody>
+        {reg.rows.map((row) => (
+          <tr>
+            {row.map((cell, i) => (
+              <td>{cell && codeCol[i] && i === 0 ? <code>{cell}</code> : cell}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</Base>

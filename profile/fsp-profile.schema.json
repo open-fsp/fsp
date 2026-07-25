@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openfsp.ru/1.0/profile/fsp-profile.schema.json",
+  "title": "Манифест FSP",
+  "description": "Машиночитаемое заявление стороны о том, какие модули FSP она поддерживает. Публикуется по адресу /.well-known/fsp. Первый шаг любого обмена — забрать манифест другой стороны и свести его со своим (см. profile/README.md).",
+  "type": "object",
+  "required": ["fsp", "party", "modules"],
+  "additionalProperties": false,
+  "properties": {
+    "fsp": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Версия протокола в целом; модули версионируются отдельно"
+    },
+    "party": {
+      "type": "object",
+      "required": ["role", "id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["operator", "requester", "aggregator"],
+          "description": "operator — фулфилмент; requester — заявитель или его агент; aggregator — площадка, сводящая тех и других"
+        },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "contact_channel": { "type": "string" }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "description": "Ключ — код модуля FSP. Объявлять модуль, чьи зависимости не объявлены, запрещено.",
+      "minProperties": 1,
+      "propertyNames": { "enum": ["core", "pricing", "capacity", "quote", "order", "tracking"] },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["versions"],
+        "additionalProperties": false,
+        "properties": {
+          "versions": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+            "description": "Все поддерживаемые версии модуля. При согласовании выбирается наибольшая общая"
+          },
+          "level": {
+            "type": "string",
+            "description": "Достигнутый уровень соответствия, если модуль их определяет (FSP Pricing: L1/L2/L3)"
+          },
+          "read_only": {
+            "type": "boolean",
+            "default": false,
+            "description": "Сторона умеет читать данные модуля, но не отдавать свои"
+          }
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Расширения стороны. Имя вида x-<vendor>:<code>. Расширение исключается из согласования, если исключён его родительский модуль.",
+      "propertyNames": { "pattern": "^x-[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["module", "versions"],
+        "additionalProperties": false,
+        "properties": {
+          "module": {
+            "type": "string",
+            "enum": ["core", "pricing", "capacity", "quote", "order", "tracking"],
+            "description": "Родительский модуль, который расширение дополняет"
+          },
+          "versions": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" }
+          },
+          "spec": { "type": "string", "format": "uri", "description": "Где опубликовано описание расширения" },
+          "candidate_for_standard": {
+            "type": "boolean",
+            "default": false,
+            "description": "Автор предлагает расширение к включению в стандарт"
+          }
+        }
+      }
+    },
+    "endpoints": {
+      "type": "object",
+      "description": "Точки входа стороны по модулям; ключ — код модуля",
+      "additionalProperties": { "type": "string", "format": "uri" }
+    },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

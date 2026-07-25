@@ -1,0 +1,70 @@
+Параметры услуг
+Варианты выполнения операции не создают новые базовые услуги.
+Код,Название,Тип,Допустимые значения,Применение
+handling_unit,Единица обработки,enum,product; order; box; pallet; place,Услуга и тариф
+fulfillment_scheme,Схема исполнения,enum,FBO; FBS,"Подбор, сборка, отгрузка"
+inspection_level,Уровень проверки,enum,visual; detailed; full,Проверка качества и возврата
+packaging_type,Тип упаковки,enum,courier_bag; box; bubble_wrap; safe_bag; stretch,Упаковка
+marking_type,Тип маркировки,enum,barcode; sticker; honest_mark,Нанесение маркировки
+marketplace,Маркетплейс,enum,WB; OZON; YM; OTHER,"Поставка, доставка, кабинеты"
+urgency,Срочность,enum,standard; urgent,Условия и модификаторы цены
+storage_mode,Режим хранения,enum,standard; secure; temperature_controlled,Хранение
+loading_method,Способ разгрузки,enum,manual; mechanized,Разгрузка
+material_included,Материал включён,boolean,true; false,Упаковка и состав предложения
+route_id,Маршрут,reference,ID маршрута или направления,"Забор, доставка, возвраты"
+transport_type,Тип транспорта,enum,courier; van; truck; other,Забор и доставка
+acceptance_type,Тип приёмки,enum,by_piece; by_box; by_pallet; document_only,Приёмка товара
+sorting_rule,Правило сортировки,enum,by_sku; by_batch; by_destination; custom,Сортировка
+identification_method,Способ идентификации,enum,barcode; article; visual; document,Идентификация товара
+measurement_set,Набор измерений,enum,dimensions; weight; dimensions_and_weight,Измерение габаритов и веса
+storage_zone,Зона хранения,reference,ID зоны хранения,"Размещение, хранение, возврат"
+tag_action,Действие с биркой,enum,add; remove; replace,Работа с биркой
+expiration_check_type,Тип проверки срока,enum,manufacture_date; expiry_date; residual_shelf_life,Проверка срока годности
+serial_number_format,Формат серийного номера,string,Шаблон или правило валидации,Учёт серийных номеров
+apparel_type,Тип изделия,reference,ID типа одежды или текстиля,Отпаривание
+hanger_type,Тип плечиков,enum,standard; reinforced; custom,Подготовка на плечиках
+garment_cover_type,Тип защитного чехла,enum,none; bag; cover,Подготовка на плечиках
+kit_composition,Состав набора,list,Список SKU и количества,Комплектация набора
+insert_type,Тип вложения,enum,leaflet; sample; gift; document; other,Промовложения
+source_packaging_type,Исходный тип упаковки,reference,Значение из packaging_type,Переупаковка
+target_packaging_type,Новый тип упаковки,reference,Значение из packaging_type,Переупаковка
+picking_method,Способ подбора,enum,piece; batch; wave,Подбор товара
+carton_size,Размер короба,reference,ID типоразмера короба,Формирование короба
+pallet_layout,Схема укладки паллеты,string,Код или описание схемы,Формирование паллеты
+wrap_layers,Количество слоёв обмотки,integer,Положительное целое число,Обмотка паллеты
+access_level,Уровень доступа,enum,standard; restricted; controlled,Ответственное хранение
+oversize_zone,Зона КГТ,reference,ID зоны крупногабаритного хранения,Хранение КГТ
+return_source,Источник возврата,enum,marketplace; customer; carrier; other,Приёмка возврата
+restoration_type,Тип восстановления,set,cleaning; repacking; remarking; minor_repair,Восстановление товарного вида
+disposal_method,Способ утилизации,enum,destruction; recycling; write_off; return_to_owner,Утилизация
+scope_of_work,Состав работ,list,Список включённых операций,Ведение кабинета маркетплейса
+crate_type,Тип обрешётки,enum,wood; plywood; combined; other,Снятие обрешётки
+removal_method,Способ снятия обрешётки,enum,manual; mechanized; other,Снятие обрешётки
+waste_disposal_included,Утилизация материала включена,boolean,true; false,Снятие обрешётки
+inventory_rotation_method,Метод ротации запасов,enum,FIFO; FEFO; LIFO; custom,Хранение
+pickup_source,Источник забора,enum,supplier; self_purchase; marketplace_return; other,Забор товара
+photo_type,Тип фотофиксации,enum,identification; defect; overview; custom,Фотофиксация
+image_count,Количество изображений,integer,Положительное целое число,Фотофиксация
+sealing_method,Способ закрытия короба,enum,tape; staple; strap; other,Закрытие короба
+print_format,Формат печати,enum,A4; A5; label; custom,Печать документов
+print_color,Цветность печати,enum,bw; color,Печать документов
+correction_type,Тип корректировки заказа,enum,order; supply; label; other,Корректировка заказа
+inventory_type,Тип инвентаризации,enum,full; cycle; spot,Инвентаризация
+inventory_scope,Охват инвентаризации,enum,item; sku; location; batch,Инвентаризация
+certification_action,Действие по сертификации,enum,consultation; document_preparation; full_service,Сертификация
+certification_type,Тип разрешительного документа,enum,refusal_letter; declaration; certificate; state_registration; other,Сертификация
+content_type,Тип контента,enum,product_photo; model_photo; infographic; retouching; seo_text; logo; other,Создание контента
+shooting_mode,Режим съёмки,enum,studio; photo_box; on_site; phone; other,Создание контента
+video_type,Тип видео,enum,product; unpacking; packing_evidence; video_cover; other,Видеоконтент
+video_duration_seconds,"Длительность видео, секунд",integer,Неотрицательное целое число,Видеоконтент
+editing_included,Обработка или монтаж включены,boolean,true; false,Контент
+label_layout_type,Тип макета этикетки,enum,barcode; qr; honest_mark; shipping; custom,Макет этикетки
+marking_verification_mode,Режим проверки маркировки,enum,scan; validate; record; report,Проверка маркировки
+return_destination,Получатель возврата,enum,customer; supplier; marketplace; other,Отправка возврата
+document_type,Тип документа,enum,shipping; return; certification; claim; other,Работа с документами
+waste_type,Тип отходов,enum,packaging; crate; pallet; mixed; other,Вывоз отходов
+labor_role,Роль персонала,enum,loader; packer; operator; specialist; other,Дополнительные работы
+promotion_type,Тип продвижения,enum,seo; advertising; store_launch; analytics; other,Продвижение
+procurement_action,Действие закупки,enum,search; purchase; negotiation; delivery_coordination,Сопровождение закупки
+transfer_type,Тип перемещения,enum,stock_owner; warehouse; legal_entity; location; other,Перемещение запасов
+measurement_type,Тип измерения изделия,enum,size_chart; garment_dimensions; custom,Снятие мерок

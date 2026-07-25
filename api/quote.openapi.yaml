@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: FSP Quote 1.0
+  version: 1.0.0
+  description: >
+    Запрос сметы на фулфилмент и ответ с подошедшими операторами. Два входа:
+    структурированный запрос (/quote) и свободный текст (/quote/free-form),
+    который разбирается в тот же quote_request. Сторона, реализующая этот API,
+    объявляет модуль quote в своём манифесте /.well-known/fsp.
+
+    Формулы вывода площади под хранение и среднего остатка стандартом не
+    нормируются: применённые допущения обязаны возвращаться в assumptions
+    (QUOTE-002). Непокрытое возвращается кодами закрытого реестра
+    unmet_reasons, а не текстом (QUOTE-003).
+
+servers:
+  - url: https://api.mpfit.ru/fsp/v1
+    description: Реализация МПФИТ (биржа мощностей)
+
+paths:
+  /.well-known/fsp:
+    get:
+      operationId: getProfile
+      summary: Манифест поддерживаемых модулей FSP
+      description: >
+        Первый вызов при знакомстве сторон. Результат сводится с собственным
+        манифестом по правилам PROFILE-003…PROFILE-006.
+      responses:
+        "200":
+          description: Манифест стороны
+          content:
+            application/json:
+              schema:
+                $ref: "../profile/fsp-profile.schema.json"
+
+  /quote:
+    post:
+      operationId: quote
+      summary: Смета по структурированному запросу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../modules/quote/schema.json#/$defs/quote_request"
+      responses:
+        "200":
+          description: Подошедшие операторы со сметой, отсортированные по релевантности
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResult"
+        "400":
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /quote/free-form:
+    post:
+      operationId: quoteFreeForm
+      summary: Смета по запросу в свободной форме
+      description: >
+        Текст (например «нужно хранить 50 паллет одежды, отгрузки на WB из
+        Москвы, маркировка ЧЗ, старт в августе») разбирается в quote_request,
+        затем выполняется обычный расчёт. Разобранный запрос и перечень полей,
+        которые не удалось определить однозначно, возвращаются вместе с
+        результатом (QUOTE-007).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, description: Запрос в свободной форме }
+                pricing_level_min:
+                  $ref: "../modules/quote/schema.json#/$defs/pricing_level"
+      responses:
+        "200":
+          description: Разобранный запрос + результат
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [parsed_request, result]
+                properties:
+                  parsed_request:
+                    $ref: "../modules/quote/schema.json#/$defs/quote_request"
+                  needs_clarification:
+                    type: array
+                    description: Поля, которые не удалось однозначно вытащить из текста
+                    items: { type: string }
+                  result:
+                    $ref: "#/components/schemas/QuoteResult"
+
+components:
+  schemas:
+    QuoteResult:
+      type: object
+      required: [count, quotes]
+      properties:
+        count: { type: integer }
+        negotiated:
+          type: object
+          description: >
+            Итог согласования модулей, зафиксированный принимающей стороной
+            (PROFILE-005). Ключ — код модуля.
+          additionalProperties:
+            type: object
+            properties:
+              version: { type: string }
+              level: { type: string }
+        quotes:
+          type: array
+          items:
+            $ref: "../modules/quote/schema.json#/$defs/quote_response"
+        excluded:
+          type: array
+          description: >
+            Операторы, выпавшие из выдачи, с кодом причины, имеющей влияние
+            exclude. Нужен операторам как обратная связь, а заявителю — как
+            объяснение узкой выдачи.
+          items:
+            type: object
+            required: [listing_id, code]
+            properties:
+              listing_id: { type: string }
+              code:
+                $ref: "../modules/quote/schema.json#/$defs/unmet_code"
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }

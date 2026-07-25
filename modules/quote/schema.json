@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openfsp.ru/1.0/quote/schema.json",
+  "title": "FSP Quote 1.0",
+  "description": "Запрос сметы и ответ. Запрос описывается операциями и объёмом, а не площадью (QUOTE-001). Формулы вывода величин стандартом не нормируются: применённые допущения возвращаются в assumptions (QUOTE-002).",
+  "$defs": {
+    "pricing_level": {
+      "type": "string",
+      "enum": ["L1", "L2", "L3"],
+      "description": "Уровень соответствия FSP Pricing; реестр conformance_levels"
+    },
+    "unmet_code": {
+      "type": "string",
+      "description": "Код из закрытого реестра unmet_reasons (QUOTE-003)",
+      "enum": [
+        "category_not_served",
+        "restricted_attribute",
+        "size_profile_no_match",
+        "marketplace_not_served",
+        "scheme_not_served",
+        "destination_not_served",
+        "origin_not_served",
+        "storage_type_unavailable",
+        "temp_mode_unavailable",
+        "insufficient_free_area",
+        "insufficient_throughput",
+        "capacity_data_stale",
+        "below_min_volume",
+        "below_min_charge",
+        "not_ready_by_date",
+        "term_too_short",
+        "counterparty_type_not_served",
+        "service_not_priced",
+        "manual_quote_required",
+        "pricing_level_insufficient",
+        "rate_card_expired"
+      ]
+    },
+    "unmet": {
+      "type": "object",
+      "required": ["code"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "$ref": "#/$defs/unmet_code" },
+        "detail": { "type": "string", "description": "Свободный текст допускается только здесь, рядом с кодом" }
+      }
+    },
+    "assumption": {
+      "type": "object",
+      "description": "Допущение расчёта: что было выведено, а не задано запросом. Набор кодов открытый — стандарт требует лишь их раскрытия.",
+      "required": ["code", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "examples": ["turnover_basis", "volume_per_m2", "days_per_month"] },
+        "value": { "type": ["string", "number", "boolean"] },
+        "detail": { "type": "string" }
+      }
+    },
+    "operation_request": {
+      "type": "object",
+      "description": "Строка ТЗ, разложенная в код услуги стандарта.",
+      "required": ["service_code"],
+      "additionalProperties": false,
+      "properties": {
+        "service_code": { "$ref": "../core/schema.json#/$defs/service_code" },
+        "qty": { "type": "number", "exclusiveMinimum": 0, "default": 1, "description": "Кратность операции на единицу товара" },
+        "source_line": { "type": "string", "description": "Исходная строка ТЗ" }
+      }
+    },
+    "quote_request": {
+      "type": "object",
+      "required": ["category_id"],
+      "additionalProperties": false,
+      "properties": {
+        "category_id": { "$ref": "../core/schema.json#/$defs/category_id" },
+        "attributes": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["fragile", "honest_mark", "high_value", "frozen"] }
+        },
+        "size_profile": { "type": "string" },
+        "operations": { "type": "array", "items": { "$ref": "#/$defs/operation_request" } },
+        "services_needed": {
+          "type": "array",
+          "items": { "$ref": "../core/schema.json#/$defs/service_code" },
+          "description": "Нужные услуги, если ТЗ не детализировано операциями"
+        },
+        "demand": {
+          "type": "object",
+          "description": "Объём запроса. Из него вызывающая сторона выводит средний остаток, площадь под хранение и нужную пропускную способность; формулы не нормируются.",
+          "additionalProperties": false,
+          "properties": {
+            "shipments_per_day": { "type": "number", "exclusiveMinimum": 0 },
+            "turnover_days": { "type": "number", "exclusiveMinimum": 0, "description": "Сколько дней товар лежит на складе" },
+            "unit_volume_l": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "storage_need": {
+          "type": "object",
+          "description": "Явная площадь под хранение. Необязательно: требовать её от заявителя запрещено (QUOTE-001).",
+          "required": ["storage_type", "temp_mode", "qty_m2"],
+          "additionalProperties": false,
+          "properties": {
+            "storage_type": { "$ref": "../capacity/schema.json#/$defs/storage_type" },
+            "temp_mode": { "$ref": "../capacity/schema.json#/$defs/temp_mode" },
+            "qty_m2": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "throughput_need": {
+          "type": "object",
+          "required": ["operation", "metric", "qty"],
+          "additionalProperties": false,
+          "properties": {
+            "operation": { "$ref": "../capacity/schema.json#/$defs/operation" },
+            "metric": { "$ref": "../capacity/schema.json#/$defs/throughput_metric" },
+            "qty": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "origin_geo": { "type": "string" },
+        "target_destinations": { "type": "array", "items": { "type": "string" } },
+        "scheme": { "$ref": "../core/schema.json#/$defs/scheme" },
+        "start_date": { "type": "string", "format": "date" },
+        "term": { "type": "string" },
+        "pricing_level_min": { "$ref": "#/$defs/pricing_level" },
+        "free_text": { "type": "string", "description": "Исходный текст запроса, если он пришёл в свободной форме" }
+      }
+    },
+    "quote_response": {
+      "type": "object",
+      "description": "Оператор с непустым unmet никогда не имеет fit=full (QUOTE-004).",
+      "required": ["listing_id", "operator", "location_geo", "fit", "contact"],
+      "additionalProperties": false,
+      "properties": {
+        "listing_id": { "type": "string" },
+        "operator": { "type": "string" },
+        "location_geo": { "type": "string" },
+        "fit": { "type": "string", "enum": ["full", "partial"] },
+        "free_m2": { "type": "number", "description": "Свободная площадь по данным оператора" },
+        "capacity_updated_at": { "type": "string", "format": "date-time", "description": "Когда оператор обновил мощность" },
+        "recommended_storage_m2": { "type": "number", "description": "Выведено из demand; параметры вывода обязаны быть в assumptions" },
+        "avg_stock_units": { "type": "number" },
+        "handling_cost_per_unit": { "type": "number" },
+        "handling_cost_monthly": { "type": "number" },
+        "storage_cost_monthly": { "type": "number" },
+        "estimated_quote": { "type": "number", "description": "Пустая смета не равна нулю (QUOTE-005)" },
+        "quote_basis": { "type": "string", "description": "Человекочитаемая расшифровка сметы" },
+        "pricing_level_used": { "$ref": "#/$defs/pricing_level" },
+        "assumptions": { "type": "array", "items": { "$ref": "#/$defs/assumption" } },
+        "unmet": { "type": "array", "items": { "$ref": "#/$defs/unmet" } },
+        "contact": { "type": "string" }
+      }
+    }
+  }
+}

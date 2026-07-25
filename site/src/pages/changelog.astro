@@ -1,0 +1,14 @@
+---
+import Base from "../layouts/Base.astro";
+import { renderMarkdown, readDoc } from "../lib/standard.js";
+
+const body = renderMarkdown(readDoc("CHANGELOG.md"));
+---
+
+<Base
+  title="Чейнджлог"
+  description="Что менялось в модулях FSP и что это ломает. Версии модулей независимы."
+>
+  <p class="crumbs"><a href="/">FSP</a> / Чейнджлог</p>
+  <div class="prose" set:html={body} />
+</Base>

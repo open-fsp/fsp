@@ -1,0 +1,41 @@
+Мощности и направления — FSP Capacity 1.0
+"Что оператор готов взять (listing), сколько у него свободно (storage_capacity, throughput_capacity) и куда он возит (routes, route_schedules). Волатильные данные: заполняет и обновляет сам оператор."
+Сущность,Поле,Тип,Обязательно,Назначение,Пример
+listing,listing_id,id,да,Предложение склада в маркетплейсе,listing_sklad_msk
+listing,location_id,id,да,Склад,loc_sklad_msk
+listing,rate_card_id,id,да,Их прайс в price_model (числа — свои),rate_card_123
+listing,categories_served,list<category_id>,да,Категории товаров из справочника categories,apparel; footwear
+listing,marketplaces_served,list<enum>,да,wb / ozon / ym / avito / own,wb; ozon
+listing,schemes_served,list<enum>,нет,FBO / FBS / DBS,FBO; FBS
+listing,counterparty_types,list<enum>,нет,ip / ooo / self_employed,ip; ooo
+listing,min_charge,decimal,нет,Минимальный чек в месяц (руб),15000
+listing,min_volume,string,нет,Минимальный объём захода,5 паллет
+listing,ready_from,date,нет,Готов принять с даты,2026-08-01
+listing,contract_min_term,string,нет,Минимальный срок договора,3 мес
+listing,restrictions,list<code>,нет,Что НЕ берёт (атрибуты/коды исключений),no_frozen; no_oversize
+listing,active,boolean,да,Показывать в выдаче,true
+storage_capacity,capacity_id,id,да,Строка свободной площади (заполняет ФФ),cap_sklad_msk_pallet
+storage_capacity,location_id,id,да,Склад,loc_sklad_msk
+storage_capacity,storage_type,enum,да,Тип хранения (см. storage_types),pallet
+storage_capacity,temp_mode,enum,да,ambient / cold / frozen,ambient
+storage_capacity,free_m2,decimal,да,Свободная площадь в м² (базовая единица),80
+storage_capacity,pallet_places,decimal,нет,Паллето-места — производная от м² по коэффициенту storage_types,200
+storage_capacity,updated_at,datetime,нет,Когда ФФ обновил,2026-07-24
+throughput_capacity,throughput_id,id,да,Строка свободной пропускной способности (заполняет ФФ),thr_sklad_msk_out
+throughput_capacity,location_id,id,да,Склад,loc_sklad_msk
+throughput_capacity,operation,enum,да,inbound / outbound / processing,outbound
+throughput_capacity,metric,enum,да,orders_per_day / deliveries_per_day / units_per_day / pallets_per_day,orders_per_day
+throughput_capacity,free_capacity,decimal,да,Свободная пропускная способность,500
+throughput_capacity,updated_at,datetime,нет,Когда ФФ обновил,2026-07-24
+routes,route_id,id,да,Регулярное направление отгрузки со склада,route_sklad_msk_kaledino
+routes,location_id,id,да,Склад-отправитель (operator_location в FSP Core),loc_sklad_msk
+routes,destination,string,да,"Направление: склад маркетплейса, город или адрес получателя",Коледино
+routes,marketplace,enum,нет,wb / ozon / ym / avito / own / any — чей склад назначения,wb
+routes,transport_mode,enum,нет,own / carrier / pickup — чьим транспортом идёт отправка,own
+routes,active,boolean,да,Направление обслуживается,true
+route_schedules,schedule_id,id,да,Окно отправки по направлению,sched_kaledino_mon
+route_schedules,route_id,id,да,Ссылка на routes.route_id,route_sklad_msk_kaledino
+route_schedules,weekday,enum,да,monday … sunday,monday
+route_schedules,cutoff_time,time,нет,Время окончания приёма заявок на это окно,18:00
+route_schedules,departure_time,time,нет,Плановое время отправления,10:00
+route_schedules,active,boolean,да,Окно доступно,true

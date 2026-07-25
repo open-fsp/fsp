@@ -1,0 +1,12 @@
+Расчётные метрики
+"Канонические формулы, входы, обработка null и правила округления для габаритного и ценового контекста."
+Метрика,Формула,Входы,Null policy,Единица,Округление,Комментарий
+sum_sides_cm,length_cm + width_cm + height_cm,length_cm; width_cm; height_cm,INPUT_MISSING,cm,none,Все размеры относятся к тарифицируемой упаковке
+max_side_cm,"MAX(length_cm, width_cm, height_cm)",length_cm; width_cm; height_cm,INPUT_MISSING,cm,none
+volume_m3,length_cm * width_cm * height_cm / 1000000,length_cm; width_cm; height_cm,INPUT_MISSING,m3,half_up:0.000001
+volumetric_weight_kg,length_cm * width_cm * height_cm / volumetric_divisor_cm3_per_kg,length_cm; width_cm; height_cm; volumetric_divisor_cm3_per_kg,INPUT_MISSING,kg,rate_card.rounding,Делитель задаётся тарифным планом
+chargeable_weight_kg,"MAX(weight_kg, volumetric_weight_kg)",weight_kg; volumetric_weight_kg,INPUT_MISSING,kg,rate_card.rounding,Иная формула требует новой версии тарифного плана
+storage_age_days,FLOOR((period_day_end - batch_accepted_at) / 1 сут),batch_accepted_at; period_day_end; time_basis,INPUT_MISSING,days,floor:1,"Возраст считается от приёмки партии, а не от начала расчётного периода; граница суток по price_rules.time_basis"
+tier_days,"MAX(0, MIN(storage_age_days_end, quantity_to) - MAX(storage_age_days_start, quantity_from))",storage_age_days_start; storage_age_days_end; quantity_from; quantity_to,INPUT_MISSING,days,none,"Суток расчётного отрезка, попавших в диапазон возраста; отрезок задан возрастом партии на начало и конец, пустая quantity_to трактуется как бесконечность"
+unit_sequence,"ROW_NUMBER() внутри группы tier_scope, порядок — порядок строк документа",tier_scope; sku; порядок строк документа,INPUT_MISSING,unit,none,Нумерация начинается с 1
+tier_units,"MAX(0, MIN(units_in_scope + 1, quantity_to) - quantity_from)",units_in_scope; quantity_from; quantity_to,INPUT_MISSING,unit,none,"Единиц группы, попавших в диапазон по unit_sequence; units_in_scope — число единиц в группе tier_scope, нумерация с 1"

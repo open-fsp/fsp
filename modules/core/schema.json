@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openfsp.ru/1.0/core/schema.json",
+  "title": "FSP Core 1.0",
+  "description": "Общий словарь протокола: ссылки на реестры каталога, оператор и его склады. Остальные модули ссылаются на эти определения.",
+  "$defs": {
+    "service_code": {
+      "type": "string",
+      "description": "Код услуги из реестра catalog_services. Неизменяем после публикации (CAT-001)"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "Код категории товара из реестра categories; корень any"
+    },
+    "billing_metric": {
+      "type": "string",
+      "description": "Код единицы начисления из реестра billing_metrics; допустимость для услуги задаёт service_metrics (CAT-010)"
+    },
+    "size_class_id": {
+      "type": "string",
+      "description": "Квалифицированный класс размера <profile>:<version>:<class> (SIZE-006)",
+      "pattern": "^[^:]+:[^:]+:[^:]+$"
+    },
+    "marketplace": {
+      "type": "string",
+      "enum": ["wb", "ozon", "ym", "avito", "own", "any"]
+    },
+    "scheme": {
+      "type": "string",
+      "enum": ["FBO", "FBS", "DBS"],
+      "description": "Схема работы с маркетплейсом"
+    },
+    "weekday": {
+      "type": "string",
+      "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    },
+    "operator": {
+      "type": "object",
+      "description": "Фулфилмент-оператор. На operator_id ссылается rate_cards.provider_id в FSP Pricing.",
+      "required": ["operator_id", "legal_name", "status", "contact_channel"],
+      "additionalProperties": false,
+      "properties": {
+        "operator_id": { "type": "string" },
+        "legal_name": { "type": "string" },
+        "brand_name": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "paused", "draft"] },
+        "contact_channel": { "type": "string", "description": "Канал для связи с оператором" }
+      }
+    },
+    "operator_location": {
+      "type": "object",
+      "description": "Склад оператора. Мощности и маршруты этого склада описываются в FSP Capacity.",
+      "required": ["location_id", "operator_id", "city", "region"],
+      "additionalProperties": false,
+      "properties": {
+        "location_id": { "type": "string" },
+        "operator_id": { "type": "string" },
+        "city": { "type": "string" },
+        "region": { "type": "string" },
+        "address": { "type": "string" },
+        "lat": { "type": "number" },
+        "lon": { "type": "number" },
+        "self_pickup": { "type": "boolean", "description": "Возможен самовывоз клиентом со склада" }
+      }
+    }
+  }
+}

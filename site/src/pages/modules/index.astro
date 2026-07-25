@@ -1,0 +1,36 @@
+---
+import Base from "../../layouts/Base.astro";
+import { allManifests, renderMarkdown, readDoc } from "../../lib/standard.js";
+
+const mods = allManifests();
+const body = renderMarkdown(readDoc("modules", "README.md"));
+---
+
+<Base
+  title="Модули"
+  description="Состав FSP: core, pricing, capacity, quote — stable; order и tracking — planned. Правила версионирования модулей."
+>
+  <p class="crumbs"><a href="/">FSP</a> / Модули</p>
+  <h1>Модули</h1>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>Модуль</th><th>Версия</th><th>Статус</th><th>О чём</th><th>Зависит от</th></tr>
+      </thead>
+      <tbody>
+        {mods.map((m) => (
+          <tr>
+            <td><a href={`/modules/${m.module}/`}><code>{m.module}</code></a></td>
+            <td>{m.status === "planned" ? "—" : m.version}</td>
+            <td><span class={`badge ${m.status}`}>{m.status}</span></td>
+            <td>{m.summary}</td>
+            <td>{m.depends.length ? m.depends.map((d) => <code>{d}</code>).reduce((a, b) => [a, ", ", b]) : "—"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose" set:html={body} />
+</Base>

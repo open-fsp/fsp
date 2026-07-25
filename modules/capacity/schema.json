@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openfsp.ru/1.0/capacity/schema.json",
+  "title": "FSP Capacity 1.0",
+  "description": "Что оператор готов взять, сколько у него свободно и куда он возит. Свободная мощность декларативна: стандарт не требует её верификации (CAP-002).",
+  "$defs": {
+    "storage_type": {
+      "type": "string",
+      "enum": ["floor", "rack", "pallet", "mezzanine", "shelf", "bulk"],
+      "description": "Тип хранения из реестра storage_types"
+    },
+    "temp_mode": {
+      "type": "string",
+      "enum": ["ambient", "cold", "frozen"]
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["inbound", "outbound", "processing"]
+    },
+    "throughput_metric": {
+      "type": "string",
+      "enum": ["orders_per_day", "deliveries_per_day", "units_per_day", "pallets_per_day"]
+    },
+    "counterparty_type": {
+      "type": "string",
+      "enum": ["ip", "ooo", "self_employed"]
+    },
+    "listing": {
+      "type": "object",
+      "description": "Витрина склада: что оператор готов взять и на каких коммерческих рамках.",
+      "required": ["listing_id", "location_id", "rate_card_id", "categories_served", "marketplaces_served", "active"],
+      "additionalProperties": false,
+      "properties": {
+        "listing_id": { "type": "string" },
+        "location_id": { "type": "string", "description": "operator_location в FSP Core" },
+        "rate_card_id": { "type": "string", "description": "Прайс оператора в FSP Pricing" },
+        "categories_served": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "../core/schema.json#/$defs/category_id" }
+        },
+        "marketplaces_served": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "../core/schema.json#/$defs/marketplace" }
+        },
+        "schemes_served": { "type": "array", "items": { "$ref": "../core/schema.json#/$defs/scheme" } },
+        "counterparty_types": { "type": "array", "items": { "$ref": "#/$defs/counterparty_type" } },
+        "min_charge": { "type": "number", "minimum": 0, "description": "Минимальный чек в месяц" },
+        "min_volume": { "type": "string", "description": "Минимальный объём захода, как его формулирует оператор" },
+        "ready_from": { "type": "string", "format": "date" },
+        "contract_min_term": { "type": "string" },
+        "restrictions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Что оператор не берёт: атрибуты товара или коды из реестра exclusions"
+        },
+        "active": { "type": "boolean" }
+      }
+    },
+    "storage_capacity": {
+      "type": "object",
+      "description": "Свободная площадь по типу и режиму хранения. Базовая единица — м² (CAP-001).",
+      "required": ["capacity_id", "location_id", "storage_type", "temp_mode", "free_m2"],
+      "additionalProperties": false,
+      "properties": {
+        "capacity_id": { "type": "string" },
+        "location_id": { "type": "string" },
+        "storage_type": { "$ref": "#/$defs/storage_type" },
+        "temp_mode": { "$ref": "#/$defs/temp_mode" },
+        "free_m2": { "type": "number", "minimum": 0 },
+        "pallet_places": { "type": "number", "minimum": 0, "description": "Производная от м² через коэффициент типа хранения" },
+        "updated_at": { "type": "string", "format": "date-time", "description": "Когда оператор обновил число" }
+      }
+    },
+    "throughput_capacity": {
+      "type": "object",
+      "required": ["throughput_id", "location_id", "operation", "metric", "free_capacity"],
+      "additionalProperties": false,
+      "properties": {
+        "throughput_id": { "type": "string" },
+        "location_id": { "type": "string" },
+        "operation": { "$ref": "#/$defs/operation" },
+        "metric": { "$ref": "#/$defs/throughput_metric" },
+        "free_capacity": { "type": "number", "minimum": 0 },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "route": {
+      "type": "object",
+      "description": "Регулярное направление отгрузки со склада. График определяет доступность отправки и не является ценовым условием (ROUTE-001).",
+      "required": ["route_id", "location_id", "destination", "active"],
+      "additionalProperties": false,
+      "properties": {
+        "route_id": { "type": "string" },
+        "location_id": { "type": "string" },
+        "destination": { "type": "string", "description": "Склад маркетплейса, город или адрес получателя" },
+        "marketplace": { "$ref": "../core/schema.json#/$defs/marketplace" },
+        "transport_mode": { "type": "string", "enum": ["own", "carrier", "pickup"] },
+        "active": { "type": "boolean" },
+        "schedules": { "type": "array", "items": { "$ref": "#/$defs/route_schedule" } }
+      }
+    },
+    "route_schedule": {
+      "type": "object",
+      "required": ["schedule_id", "weekday", "active"],
+      "additionalProperties": false,
+      "properties": {
+        "schedule_id": { "type": "string" },
+        "route_id": { "type": "string" },
+        "weekday": { "$ref": "../core/schema.json#/$defs/weekday" },
+        "cutoff_time": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" },
+        "departure_time": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" },
+        "active": { "type": "boolean" }
+      }
+    }
+  }
+}

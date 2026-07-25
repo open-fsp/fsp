@@ -1,0 +1,95 @@
+Реестр условий цены
+"Закрытый реестр типизированных полей, которыми могут пользоваться условия цены и модификаторов."
+Поле,Группа,Тип,Операторы,Смысл
+product_category_id,Товар,id,eq; in,Категория MPFIT
+product_category_path,Товар,path,is_descendant_of,Ветка категорий
+product_attribute.fragile,Товар,boolean,eq; exists,Хрупкость
+product_attribute.honest_mark,Товар,boolean,eq; exists,Честный знак
+product_attribute.high_value,Товар,boolean,eq; exists,Ценный товар
+size_profile_id,Габариты,id,eq,Профиль размеров
+size_class_id,Габариты,id,eq; in,Квалифицированный ID класса: <profile>:<version>:<class>
+weight_kg,Габариты,decimal,gt; gte; lt; lte; between,Фактический вес
+max_side_cm,Габариты,decimal,gt; gte; lt; lte; between,Максимальная сторона
+sum_sides_cm,Габариты,decimal,gt; gte; lt; lte; between,Сумма сторон
+volume_m3,Габариты,decimal,gt; gte; lt; lte; between,Физический объём
+volumetric_weight_kg,Габариты,decimal,gt; gte; lt; lte; between,Объёмный вес
+chargeable_weight_kg,Габариты,decimal,gt; gte; lt; lte; between,Тарифицируемый вес
+fulfillment_scheme,Операция,enum,eq; in,FBO/FBS
+inspection_level,Операция,enum,eq; in,Уровень проверки
+packaging_type,Операция,enum,eq; in,Тип упаковки
+marketplace,Контекст,enum,eq; in,Маркетплейс
+warehouse_id,Контекст,id,eq; in,Склад
+route_id,Контекст,id,eq; in,Маршрут
+urgency,Контекст,enum,eq,Срочность
+units_per_order,Объём,integer,gt; gte; lt; lte; between,Товаров в заказе
+units_per_month,Объём,integer,gt; gte; lt; lte; between,Товаров в месяц
+orders_per_month,Объём,integer,gt; gte; lt; lte; between,Заказов в месяц
+handling_unit,Операция,enum,eq; neq; in; not_in,Единица обработки
+storage_mode,Операция,enum,eq; neq; in; not_in,Режим хранения
+loading_method,Операция,enum,eq; neq; in; not_in,Способ разгрузки
+material_included,Операция,boolean,eq; exists,Материал включён
+transport_type,Контекст,enum,eq; neq; in; not_in,Тип транспорта
+acceptance_type,Операция,enum,eq; neq; in; not_in,Тип приёмки
+sorting_rule,Операция,enum,eq; neq; in; not_in,Правило сортировки
+identification_method,Операция,enum,eq; neq; in; not_in,Способ идентификации
+measurement_set,Операция,enum,eq; in,Набор измерений
+storage_zone,Контекст,id,eq; neq; in; not_in,Зона хранения
+tag_action,Операция,enum,eq; in,Действие с биркой
+expiration_check_type,Операция,enum,eq; in,Тип проверки срока
+serial_number_format,Товар,string,eq; exists,Формат серийного номера
+apparel_type,Товар,id,eq; in,Тип изделия
+hanger_type,Операция,enum,eq; in,Тип плечиков
+garment_cover_type,Операция,enum,eq; in,Тип защитного чехла
+kit_composition,Операция,list,exists,Состав набора
+insert_type,Операция,enum,eq; in,Тип вложения
+source_packaging_type,Операция,enum,eq; in,Исходная упаковка
+target_packaging_type,Операция,enum,eq; in,Новая упаковка
+picking_method,Операция,enum,eq; in,Способ подбора
+carton_size,Операция,id,eq; in,Типоразмер короба
+pallet_layout,Операция,string,eq; in,Схема укладки
+wrap_layers,Операция,integer,gt; gte; lt; lte; between,Число слоёв
+access_level,Контекст,enum,eq; in,Уровень доступа
+oversize_zone,Контекст,id,eq; in,Зона КГТ
+return_source,Контекст,enum,eq; in,Источник возврата
+restoration_type,Операция,set,in; exists,Тип восстановления
+disposal_method,Операция,enum,eq; in,Способ утилизации
+scope_of_work,Операция,list,exists,Состав работ
+crate_type,Товар,enum,eq; in,Тип обрешётки
+removal_method,Операция,enum,eq; in,Способ снятия обрешётки
+waste_disposal_included,Операция,boolean,eq; exists,Утилизация материала включена
+distance_km,Маршрут,decimal,gt; gte; lt; lte; between,Расстояние
+calculation_datetime,Контекст,datetime,gt; gte; lt; lte; between,Момент расчёта и выбора версии тарифа
+marking_type,Операция,enum,eq; neq; in; not_in,Тип маркировки
+storage_age_days,Хранение,integer,gt; gte; lt; lte; between,Возраст партии на хранении в сутках
+inventory_rotation_method,Операция,enum,eq; neq; in; not_in,Метод ротации запасов
+pickup_source,Контекст,enum,eq; neq; in; not_in,Источник забора
+photo_type,Операция,enum,eq; neq; in; not_in,Тип фотофиксации
+image_count,Операция,integer,gt; gte; lt; lte; between,Количество изображений
+sealing_method,Операция,enum,eq; neq; in; not_in,Способ закрытия короба
+print_format,Операция,enum,eq; neq; in; not_in,Формат печати
+print_color,Операция,enum,eq; neq; in; not_in,Цветность печати
+correction_type,Операция,enum,eq; neq; in; not_in,Тип корректировки заказа
+inventory_type,Операция,enum,eq; neq; in; not_in,Тип инвентаризации
+certification_type,Операция,enum,eq; neq; in; not_in,Тип разрешительного документа
+content_type,Операция,enum,eq; neq; in; not_in,Тип создаваемого контента
+video_type,Операция,enum,eq; neq; in; not_in,Тип видеоматериала
+video_duration_seconds,Операция,integer,gt; gte; lt; lte; between,Длительность видео
+label_layout_type,Операция,enum,eq; neq; in; not_in,Тип макета этикетки
+marking_verification_mode,Операция,enum,eq; neq; in; not_in,Режим проверки маркировки
+return_destination,Контекст,enum,eq; neq; in; not_in,Получатель возврата
+document_type,Операция,enum,eq; neq; in; not_in,Тип документа
+waste_type,Операция,enum,eq; neq; in; not_in,Тип отходов
+labor_role,Операция,enum,eq; neq; in; not_in,Роль персонала
+promotion_type,Операция,enum,eq; neq; in; not_in,Тип продвижения
+procurement_action,Операция,enum,eq; neq; in; not_in,Действие закупки
+transfer_type,Операция,enum,eq; neq; in; not_in,Тип перемещения
+measurement_type,Операция,enum,eq; neq; in; not_in,Тип измерения изделия
+product_value_rub,Стоимость,decimal,gt; gte; lt; lte; between,"Стоимость единицы товара, ₽"
+order_value_rub,Стоимость,decimal,gt; gte; lt; lte; between,"Стоимость заказа, ₽"
+sku_count,Объём,integer,gt; gte; lt; lte; between,Количество SKU
+boxes_per_shipment,Объём,integer,gt; gte; lt; lte; between,Количество коробов в отправлении
+pallet_sequence,Объём,integer,gt; gte; lt; lte; between,Порядковый номер паллеты в отправлении
+unit_sequence,Объём,integer,gt; gte; lt; lte; between,Порядковый номер единицы одинакового товара в группе
+units_per_sku_in_order,Объём,integer,gt; gte; lt; lte; between,Единиц одинакового товара в заказе
+units_per_sku_in_supply,Объём,integer,gt; gte; lt; lte; between,Единиц одинакового товара в поставке
+storage_stay_days,Хранение,integer,gt; gte; lt; lte; between,Полный срок хранения партии в сутках

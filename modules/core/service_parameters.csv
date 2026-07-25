@@ -1,0 +1,94 @@
+Параметры услуг
+Нормализованная связь услуг и параметров; обязательность проверяется при публикации предложения.
+Код услуги,Код параметра,Обязательность,Условие обязательности,Значение по умолчанию,Комментарий
+supplier_pickup,route_id,required,,,Маршрут забора
+supplier_pickup,transport_type,optional,,,Тип транспорта
+inbound_unloading,loading_method,required,,,Ручная или механизированная разгрузка
+inbound_unloading,handling_unit,conditional,если база начисления — единица обработки
+crate_removal,crate_type,optional
+crate_removal,removal_method,required
+crate_removal,waste_disposal_included,optional,,false
+goods_acceptance,acceptance_type,required
+goods_acceptance,handling_unit,conditional,если база начисления — короб/паллета/место
+goods_sorting,sorting_rule,required
+goods_identification,identification_method,required
+quality_inspection,inspection_level,required,,visual
+dimension_measurement,measurement_set,required,,dimensions_and_weight
+putaway,storage_zone,required
+putaway,handling_unit,conditional,если база начисления — единица обработки
+old_label_removal,marking_type,required
+product_marking,marking_type,required
+kitting,kit_composition,required
+promotional_insert,insert_type,required
+repacking,source_packaging_type,required
+repacking,target_packaging_type,required
+tag_handling,tag_action,required
+apparel_steaming,apparel_type,required
+hanger_preparation,hanger_type,required,,standard
+hanger_preparation,garment_cover_type,optional,,none
+item_picking,fulfillment_scheme,required
+item_picking,picking_method,optional,,piece
+order_assembly,fulfillment_scheme,required
+product_packaging,packaging_type,required
+product_packaging,material_included,required,,false
+carton_formation,carton_size,required
+pallet_formation,pallet_layout,optional
+pallet_wrapping,wrap_layers,required,,1
+storage,storage_zone,required
+storage,storage_mode,required,,standard
+storage,handling_unit,conditional,если billing_metric задан в единицах обработки
+secure_storage,access_level,required,,restricted
+oversize_storage,oversize_zone,required
+outbound_dispatch,fulfillment_scheme,required
+outbound_dispatch,handling_unit,conditional,если база начисления — единица обработки
+marketplace_delivery,route_id,required
+marketplace_delivery,marketplace,required
+marketplace_delivery,handling_unit,conditional,если база начисления — короб/паллета/место
+return_pickup,route_id,required
+return_acceptance,return_source,required
+return_inspection,inspection_level,required,,visual
+item_restoration,restoration_type,required
+return_to_stock,storage_zone,required
+item_disposal,disposal_method,required
+supply_request_creation,marketplace,required
+supply_request_update,marketplace,required
+product_card_creation,marketplace,required
+marketplace_account_management,scope_of_work,required
+marketplace_account_management,marketplace,required
+expiration_check,expiration_check_type,required
+serial_number_recording,serial_number_format,required
+storage,inventory_rotation_method,optional,,FIFO,Метод складской ротации
+supplier_pickup,pickup_source,optional,,supplier,Источник забора
+photo_documentation,photo_type,required
+photo_documentation,image_count,optional,,1
+carton_sealing,sealing_method,required,,tape
+carton_sealing,material_included,required,,false
+document_printing,print_format,required,,A4
+document_printing,print_color,required,,bw
+outer_packaging_removal,source_packaging_type,optional
+order_correction,correction_type,required,,order
+inventory_count,inventory_type,required,,full,Тип инвентаризации
+inventory_count,inventory_scope,optional,,item,Охват пересчёта
+product_certification,certification_action,required,,full_service,Состав работ
+product_certification,certification_type,required,,declaration,Тип документа
+content_production,content_type,required,,product_photo,Тип результата
+content_production,shooting_mode,optional,,studio,Режим съёмки
+content_production,editing_included,optional,,true,Обработка результата
+video_production,video_type,required,,product,Тип видео
+video_production,video_duration_seconds,optional,,60,Длительность
+video_production,editing_included,optional,,true,Монтаж
+label_layout_creation,label_layout_type,required,,barcode,Тип макета
+marking_code_verification,marking_verification_mode,required,,validate,Режим проверки
+marking_code_verification,marking_type,optional,,honest_mark,Тип маркировки
+return_dispatch,return_destination,required,,supplier,Получатель
+return_dispatch,fulfillment_scheme,optional,,FBO,Контекст схемы
+document_handling,document_type,required,,shipping,Тип документа
+waste_removal,waste_type,required,,packaging,Тип отходов
+manual_labor,labor_role,required,,loader,Роль
+marketplace_promotion,promotion_type,required,,seo,Тип продвижения
+marketplace_promotion,marketplace,required,,WB,Маркетплейс
+procurement_support,procurement_action,required,,search,Действие
+procurement_support,pickup_source,optional,,supplier,Источник
+inventory_transfer,transfer_type,required,,location,Тип перемещения
+garment_measurement,measurement_type,required,,size_chart,Тип измерения
+garment_measurement,apparel_type,optional,,,Тип изделия

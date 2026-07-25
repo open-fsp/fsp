@@ -1,0 +1,68 @@
+---
+import "../styles/global.css";
+import { REPO } from "../lib/standard.js";
+
+const { title, description, wide = false } = Astro.props;
+const path = Astro.url.pathname;
+const full = title ? `${title} — FSP` : "FSP — Fulfillment Services Protocol";
+const nav = [
+  ["/modules/", "Модули"],
+  ["/profile/", "Манифест"],
+  ["/rules/", "Правила"],
+  ["/artifacts/", "Артефакты"],
+  ["/changelog/", "Чейнджлог"],
+];
+const canonical = new URL(path, Astro.site).href;
+---
+
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{full}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={full} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta name="theme-color" content="#101216" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="shell">
+        <a class="brand" href="/">FSP <span>1.0</span></a>
+        <nav class="main">
+          {nav.map(([href, label]) => (
+            <a href={href} aria-current={path.startsWith(href) ? "page" : undefined}>{label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="shell" style={wide ? "max-width:76rem" : undefined}>
+        <slot />
+      </div>
+    </main>
+
+    <footer class="bottom">
+      <div class="shell">
+        <p>
+          FSP — Fulfillment Services Protocol. Открытый стандарт услуг фулфилмента.
+        </p>
+        <p>
+          Канон — <a href={REPO}>репозиторий на GitHub</a>.
+          Страницы этой витрины генерятся из его реестров, поэтому не могут разойтись со стандартом.
+        </p>
+        <p>
+          Текст спецификации — CC BY 4.0, код и схемы — Apache-2.0.
+          Ведёт стандарт <a href="https://mpfit.ru">МПФИТ</a>, первый реализующий.
+          Правки принимаются <a href={`${REPO}/blob/main/CONTRIBUTING.md`}>через pull request</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+Переменные диапазонов
+"Закрытый реестр шкал, по которым режутся ступени цены (price_tiers). Значение вне списка возвращает TIER_VARIABLE_UNKNOWN."
+Код,Название,Тип,Единица,Допустимые режимы,Допустимые области,Источник значения,Комментарий
+storage_age_days,Возраст партии на хранении,integer,сут,progressive; slab,batch,условие,"Ступени по сроку хранения: первая неделя одна ставка, дальше другая; бесплатный период — первый диапазон с amount=0"
+storage_stay_days,Срок хранения партии,integer,сут,slab,batch,условие,"Весь срок по ставке итогового диапазона; для посуточной разбивки используется storage_age_days"
+unit_sequence,Порядковый номер единицы товара в группе,integer,шт,progressive; slab,order_sku; supply_sku; batch,условие,"Первая и последующие единицы одинакового товара; нумерация с 1"
+pallet_sequence,Порядковый номер паллеты в отправлении,integer,шт,progressive; slab,shipment,условие,Первая паллета дороже последующих
+units_per_order,Товаров в заказе,integer,шт,slab; progressive,order,условие,Скидка за многотоварный заказ
+units_per_month,Товаров в месяц,integer,шт,slab; progressive,billing_period; sku_month,условие,Объёмная скидка по месячному обороту
+orders_per_month,Заказов в месяц,integer,шт,slab; progressive,billing_period,условие,Объёмная скидка по числу заказов
+sku_count,Количество SKU,integer,шт,slab; progressive,supply; billing_period,условие,Ступени по ширине ассортимента
+boxes_per_shipment,Коробов в отправлении,integer,шт,slab; progressive,shipment,условие,Ступени по объёму отправления
+weight_kg,Фактический вес,decimal,кг,progressive; slab,calculation,условие,"До 1 кг ставка, далее за каждый следующий кг"
+chargeable_weight_kg,Тарифицируемый вес,decimal,кг,progressive; slab,calculation,расчётная метрика,Шкала по тарифицируемому весу вместо фактического
+volume_m3,Физический объём,decimal,м³,progressive; slab,calculation,расчётная метрика,Ступени по объёму
+distance_km,Расстояние,decimal,км,progressive; slab,calculation,условие,"Первые км в подаче, далее за км"
+hours,Часы работ,decimal,ч,progressive; slab,calculation,метрика,Первый час дороже последующих
+image_count,Количество изображений,integer,шт,progressive; slab,calculation,условие,Первый кадр дороже последующих

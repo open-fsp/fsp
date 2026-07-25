@@ -1,0 +1,98 @@
+---
+import Base from "../../layouts/Base.astro";
+import {
+  MODULES, manifest, registry, renderMarkdown, readDoc, rowsOf, schemaOf,
+} from "../../lib/standard.js";
+
+export function getStaticPaths() {
+  return MODULES.map((module) => ({ params: { module } }));
+}
+
+const { module } = Astro.params;
+const man = manifest(module);
+const body = renderMarkdown(readDoc("modules", module, "README.md"), module);
+const regs = man.registries
+  .filter((r) => r !== "rules")
+  .map((r) => registry(module, r));
+const rules = man.registries.includes("rules") ? rowsOf(module, "rules") : [];
+const schema = schemaOf(module);
+const defs = schema ? Object.keys(schema.$defs || {}) : [];
+---
+
+<Base
+  title={man.title}
+  description={`${man.title} ${man.version === "0.0" ? "" : man.version} — ${man.summary}`}
+>
+  <p class="crumbs"><a href="/">FSP</a> / <a href="/modules/">Модули</a> / {module}</p>
+  <p class="eyebrow">
+    <span class={`badge ${man.status}`}>{man.status}</span>
+    {man.status !== "planned" && <> версия {man.version}</>}
+  </p>
+  <h1>{man.title} {man.status === "planned" ? "" : man.version}</h1>
+  <p class="lead">{man.summary}</p>
+
+  {man.depends.length > 0 && (
+    <p>
+      Зависит от:
+      {man.depends.map((d, i) => (
+        <>{i > 0 && ", "}<a href={`/modules/${d}/`}><code>{d}</code></a></>
+      ))}. Объявить этот модуль в манифесте без них нельзя (<code>PROFILE-002</code>).
+    </p>
+  )}
+
+  {man.note && <div class="note"><p>{man.note}</p></div>}
+
+  {regs.length > 0 && (
+    <>
+      <h2>Реестры</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Реестр</th><th>Что внутри</th><th>Строк</th></tr></thead>
+          <tbody>
+            {regs.map((r) => (
+              <tr>
+                <td><a href={r.href}><code>{r.name}</code></a></td>
+                <td>{r.description || r.title}</td>
+                <td>{r.rows.length}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )}
+
+  <div class="prose" set:html={body} />
+
+  {rules.length > 0 && (
+    <>
+      <h2 id="rules">Нормативные правила</h2>
+      <p>
+        Обязательны для соответствия модулю. Префиксы объявлены в манифесте:
+        {man.rule_prefixes.map((p, i) => <>{i > 0 && ", "}<code>{p}-*</code></>)}.
+      </p>
+      <ul class="rules">
+        {rules.map((r) => (
+          <li><code>{r.ID}</code><span>{r["Правило"]}</span></li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  {defs.length > 0 && (
+    <>
+      <h2 id="schema">Схема</h2>
+      <p>
+        JSON Schema 2020-12: <a href={`/1.0/${module}/schema.json`}><code>/1.0/{module}/schema.json</code></a>.
+        Определения: {defs.map((d, i) => <>{i > 0 && ", "}<code>{d}</code></>)}.
+      </p>
+    </>
+  )}
+
+  <h2>Манифест модуля</h2>
+  <p>
+    Состав модуля объявлен машиночитаемо. Валидатор сверяет объявленные реестры с файлами в обе
+    стороны: необъявленный файл — такая же блокирующая ошибка, как объявленный реестр без файла.
+  </p>
+  <pre><code>{JSON.stringify(man, null, 2)}</code></pre>
+</Base>

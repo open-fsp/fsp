@@ -1,0 +1,15 @@
+Габаритный профиль MPFIT
+Профиль является одним из факторов цены. При нескольких совпадениях выбирается минимальный числовой priority.
+Профиль,Версия,Класс,Приоритет,Группа,Метрика,Оператор,Значение,Единица,Логика групп,Обязательные входы,Null policy
+MPFIT_STD_2026,1.0,S,10.0,1.0,sum_sides_cm,lt,60.0,cm,AND,length_cm; width_cm; height_cm,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,S,10.0,1.0,weight_kg,lt,0.5,kg,AND,weight_kg,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,M,20.0,1.0,sum_sides_cm,lt,100.0,cm,AND,length_cm; width_cm; height_cm,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,M,20.0,1.0,weight_kg,lt,3.0,kg,AND,weight_kg,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,L,30.0,1.0,sum_sides_cm,lt,150.0,cm,AND,length_cm; width_cm; height_cm,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,L,30.0,1.0,weight_kg,lt,10.0,kg,AND,weight_kg,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,XL,40.0,1.0,sum_sides_cm,lt,200.0,cm,AND,length_cm; width_cm; height_cm,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,XL,40.0,1.0,weight_kg,lt,25.0,kg,AND,weight_kg,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,КГТ,50.0,1.0,sum_sides_cm,gte,200.0,cm,OR,length_cm; width_cm; height_cm,ERROR: SIZE_PROFILE_INPUT_MISSING
+MPFIT_STD_2026,1.0,КГТ,50.0,2.0,weight_kg,gte,25.0,kg,OR,weight_kg,ERROR: SIZE_PROFILE_INPUT_MISSING
+Метаданные профиля,Версия,Статус,Действует с,Действует до,Единицы входов
+MPFIT_STD_2026,1.0,active,2026-01-01,,cm; kg

@@ -1,0 +1,34 @@
+Запрос сметы и ответ — FSP Quote 1.0
+"Единый контракт запроса (ТЗ + объём) и ответа (подошедшие операторы, смета, непокрытое). Формулы вывода величин стандартом не нормируются: применённые допущения возвращаются в assumptions."
+Сущность,Поле,Тип,Обязательно,Назначение,Пример
+quote_request,category_id,id,да,Категория товара,apparel
+quote_request,attributes,list<flag>,нет,fragile / honest_mark / high_value / frozen,honest_mark
+quote_request,size_profile,string,нет,Габаритный класс,MPFIT_STD_2026:M
+quote_request,operations,list<object>,нет,Операции ТЗ в service_code (+ кратность); из текста разбирает LLM,"{goods_acceptance,1}; {product_marking,2}"
+quote_request,demand,object,нет,"{shipments_per_day, turnover_days, unit_volume_l} — объём, из него рекомендуется место","{100, 30, 2}"
+quote_request,storage_need,object,нет,"Явное место {storage_type, temp_mode, qty_m2}; необязательно — иначе выводится из demand","{pallet, ambient, 20}"
+quote_request,throughput_need,object,нет,"{operation, metric, qty}; = shipments_per_day","{outbound, orders_per_day, 300}"
+quote_request,origin_geo,string,нет,Откуда забор (город/адрес),Москва
+quote_request,target_destinations,list,нет,Куда отгрузки (МП / направления),Коледино; Хоругвино
+quote_request,services_needed,list<service_code>,нет,Нужные услуги стандарта,goods_acceptance; honest_mark_labeling
+quote_request,scheme,enum,нет,FBO / FBS / DBS,FBO
+quote_request,start_date,date,нет,Желаемый старт,2026-08-01
+quote_request,term,string,нет,Срок,от 6 мес
+quote_request,free_text,string,нет,Исходный текст запроса (свободная форма),"нужно хранить 50 паллет одежды, отгрузки на WB из Москвы"
+quote_response,listing_id,id,да,Какое предложение подошло,listing_sklad_msk
+quote_response,operator,string,да,Имя ФФ,Складсервис
+quote_response,location_geo,string,да,Город склада,Москва
+quote_response,fit,enum,да,full / partial,full
+quote_response,free_m2,decimal,да,Свободная площадь по данным ФФ,80
+quote_response,recommended_storage_m2,decimal,нет,Рекомендуемое место из demand,4
+quote_response,avg_stock_units,decimal,нет,Средний остаток шт = отгрузки × оборачиваемость,3000
+quote_response,handling_cost_per_unit,decimal,нет,Смета обработки за 1 шт по ТЗ,92
+quote_response,handling_cost_monthly,decimal,нет,Обработка за месяц = за шт × отгрузки × 30,276000
+quote_response,storage_cost_monthly,decimal,нет,Хранение за месяц по ставке ФФ,21600
+quote_response,estimated_quote,decimal,нет,Итоговая смета (обработка + хранение),297600
+quote_response,quote_basis,string,нет,Из чего смета,обработка 92 ₽/шт × 3000 + хранение 6 м³ × 120 ₽ × 30
+quote_response,contact,string,да,Куда вести лид,tg:@sklad_ff
+quote_response,unmet,list,нет,Что не покрыто (если partial),нет заморозки
+quote_request,pricing_level_min,enum,нет,"Минимальный уровень FSP Pricing, с которым вызывающая сторона готова считать смету",L1
+quote_response,assumptions,list<object>,условно,"Допущения расчёта {code, value}; обязательны, если смета опирается на выведенные величины","{turnover_basis, stock_days}; {volume_per_m2, 1.8}"
+quote_response,pricing_level_used,enum,нет,"Уровень FSP Pricing, на котором фактически посчитана смета",L2

@@ -1,0 +1,15 @@
+{
+  "module": "capacity",
+  "title": "FSP Capacity",
+  "version": "1.0",
+  "status": "stable",
+  "summary": "Что оператор готов взять, сколько у него свободно и куда он возит. Волатильные данные с отметкой актуальности.",
+  "depends": ["core"],
+  "registries": [
+    "capacity_model",
+    "storage_types",
+    "rules"
+  ],
+  "rule_prefixes": ["CAP", "ROUTE"],
+  "schema": "schema.json"
+}
