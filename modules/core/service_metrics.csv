@@ -130,6 +130,12 @@ outbound_dispatch,vehicles,allowed
 outbound_dispatch,hours,allowed
 outbound_dispatch,items,allowed
 outbound_dispatch,liters,allowed
+pickup_handover,orders,allowed
+pickup_handover,shipments,allowed
+pickup_handover,items,allowed
+pickup_handover,boxes,allowed
+pickup_handover,pallets,allowed
+pickup_handover,hours,allowed
 marketplace_delivery,deliveries,allowed
 marketplace_delivery,vehicles,allowed
 marketplace_delivery,boxes,allowed

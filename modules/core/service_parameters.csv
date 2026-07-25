@@ -92,3 +92,5 @@ procurement_support,pickup_source,optional,,supplier,Источник
 inventory_transfer,transfer_type,required,,location,Тип перемещения
 garment_measurement,measurement_type,required,,size_chart,Тип измерения
 garment_measurement,apparel_type,optional,,,Тип изделия
+pickup_handover,handover_recipient,да,,,Кому передаётся товар: цена и порядок проверки зависят от получателя
+pickup_handover,identification_method,нет,,,"Как оператор убеждается, что перед ним нужный получатель"

@@ -33,6 +33,7 @@ secure_storage,Ответственное хранение,item_days; box_days; 
 oversize_storage,Хранение КГТ,item_days; pallet_days; cargo_place_days; volume_m3_days,товаро-день; паллето-день; место-день; м³-день,зона КГТ,oversize_zone,Для крупногабаритных товаров,base
 Отгрузка и доставка
 outbound_dispatch,Отгрузка,items; orders; boxes; pallets; cargo_places; vehicles; hours; liters,товар; заказ; короб; паллета; грузовое место; машина; час; литр,FBO / FBS,fulfillment_scheme; handling_unit,Передача груза перевозчику,base
+pickup_handover,Выдача товара при самовывозе,orders; shipments; items; boxes; pallets; hours,заказ; отправление; товар; короб; паллета; час,получатель; способ идентификации,handover_recipient; identification_method,"Передача товара получателю на складе оператора: покупателю, селлеру или его курьеру. Отдельная услуга, потому что при самовывозе нет ни перевозчика, ни маршрута: работа заканчивается идентификацией получателя и передачей груза из рук в руки",base
 marketplace_delivery,Доставка до маркетплейса,items; deliveries; vehicles; boxes; pallets; cargo_places; weight_kg; volume_m3; distance_km; liters,товар; рейс; машина; короб; паллета; грузовое место; кг; м³; км; литр,маршрут; маркетплейс,route_id; marketplace; handling_unit,Доставка до склада или СЦ,base
 return_pickup,Забор возвратов,items; boxes; pallets; cargo_places; vehicles; deliveries; distance_km; weight_kg; volume_m3; hours,товар; короб; паллета; грузовое место; машина; рейс; км; кг; м³; час,маршрут,route_id,Забор возвратного потока,base
 Возвраты

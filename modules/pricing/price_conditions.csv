@@ -65,6 +65,7 @@ marking_type,Операция,enum,eq; neq; in; not_in,Тип маркировк
 storage_age_days,Хранение,integer,gt; gte; lt; lte; between,Возраст партии на хранении в сутках
 inventory_rotation_method,Операция,enum,eq; neq; in; not_in,Метод ротации запасов
 pickup_source,Контекст,enum,eq; neq; in; not_in,Источник забора
+handover_recipient,Операция,enum,eq; neq; in; not_in,Получатель при выдаче со склада
 photo_type,Операция,enum,eq; neq; in; not_in,Тип фотофиксации
 image_count,Операция,integer,gt; gte; lt; lte; between,Количество изображений
 sealing_method,Операция,enum,eq; neq; in; not_in,Способ закрытия короба
