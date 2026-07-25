@@ -1,7 +1,7 @@
 Реестр условий цены
 "Закрытый реестр типизированных полей, которыми могут пользоваться условия цены и модификаторов."
 Поле,Группа,Тип,Операторы,Смысл
-product_category_id,Товар,id,eq; in,Категория MPFIT
+product_category_id,Товар,id,eq; in,Категория стандарта
 product_category_path,Товар,path,is_descendant_of,Ветка категорий
 product_attribute.fragile,Товар,boolean,eq; exists,Хрупкость
 product_attribute.honest_mark,Товар,boolean,eq; exists,Честный знак
