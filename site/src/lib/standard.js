@@ -21,7 +21,7 @@ function findRoot() {
 
 export const ROOT = findRoot();
 /** Адрес канона. Меняется в одном месте: сайт, llms.txt и главная берут его отсюда. */
-export const REPO = "https://github.com/openfsp/fsp";
+export const REPO = "https://github.com/open-fsp/fsp";
 export const GITHUB = REPO + "/blob/main";
 export const MODULES = ["core", "pricing", "capacity", "quote", "order", "tracking"];
 

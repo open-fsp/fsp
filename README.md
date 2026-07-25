@@ -30,7 +30,7 @@
 ## Быстрый старт
 
 ```bash
-git clone https://github.com/openfsp/fsp.git
+git clone https://github.com/open-fsp/fsp.git
 cd fsp && python3 validate.py
 ```
 
