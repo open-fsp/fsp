@@ -1,14 +1,9 @@
 ---
 import Base from "../layouts/Base.astro";
-import { renderMarkdown, readDoc, registry, ROOT } from "../lib/standard.js";
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
+import { renderMarkdown, readDoc } from "../lib/standard.js";
 
-const body = renderMarkdown(readDoc("appendix", "README.md"), "appendix");
-const regs = readdirSync(join(ROOT, "appendix"))
-  .filter((f) => f.endsWith(".csv"))
-  .sort()
-  .map((f) => registry("appendix", f.replace(/\.csv$/, "")));
+// h1 уже нарисован страницей, состав реестров описан в самом README
+const body = renderMarkdown(readDoc("appendix", "README.md"), "appendix", ["h1"]);
 ---
 
 <Base
@@ -17,25 +12,6 @@ const regs = readdirSync(join(ROOT, "appendix"))
 >
   <p class="crumbs"><a href="/">FSP</a> / Приложение</p>
   <h1>Приложение: разбор реальных прайсов</h1>
-  <p class="lead">
-    Не входит в стандарт. Это доказательство того, что модули FSP выражают живые прайс-листы
-    операторов, а не только придуманные примеры.
-  </p>
-
-  <div class="scroll">
-    <table>
-      <thead><tr><th>Реестр</th><th>Что внутри</th><th>Строк</th></tr></thead>
-      <tbody>
-        {regs.map((r) => (
-          <tr>
-            <td><a href={r.href}><code>{r.name}</code></a></td>
-            <td>{r.description || r.title}</td>
-            <td>{r.rows.length}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
 
   <div class="prose" set:html={body} />
 </Base>

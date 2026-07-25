@@ -1,7 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import {
-  MODULES, manifest, registry, renderMarkdown, readDoc, rowsOf, schemaOf,
+  MODULES, manifest, renderMarkdown, readDoc, rowsOf, schemaOf,
 } from "../../lib/standard.js";
 
 export function getStaticPaths() {
@@ -10,10 +10,10 @@ export function getStaticPaths() {
 
 const { module } = Astro.params;
 const man = manifest(module);
-const body = renderMarkdown(readDoc("modules", module, "README.md"), module);
-const regs = man.registries
-  .filter((r) => r !== "rules")
-  .map((r) => registry(module, r));
+// h1 уже нарисован страницей; состав реестров описан в самом README со ссылками.
+// У planned-модулей вводный абзац канона повторяет summary — на странице он лишний.
+const strip = man.status === "planned" ? ["h1", "lead"] : ["h1"];
+const body = renderMarkdown(readDoc("modules", module, "README.md"), module, strip);
 const rules = man.registries.includes("rules") ? rowsOf(module, "rules") : [];
 const schema = schemaOf(module);
 const defs = schema ? Object.keys(schema.$defs || {}) : [];
@@ -36,30 +36,8 @@ const defs = schema ? Object.keys(schema.$defs || {}) : [];
       Зависит от:
       {man.depends.map((d, i) => (
         <>{i > 0 && ", "}<a href={`/modules/${d}/`}><code>{d}</code></a></>
-      ))}. Объявить этот модуль в манифесте без них нельзя (<code>PROFILE-002</code>).
+      ))}. Объявить этот модуль в манифесте без {man.depends.length > 1 ? "них" : "него"} нельзя (<code>PROFILE-002</code>).
     </p>
-  )}
-
-  {man.note && <div class="note"><p>{man.note}</p></div>}
-
-  {regs.length > 0 && (
-    <>
-      <h2>Реестры</h2>
-      <div class="scroll">
-        <table>
-          <thead><tr><th>Реестр</th><th>Что внутри</th><th>Строк</th></tr></thead>
-          <tbody>
-            {regs.map((r) => (
-              <tr>
-                <td><a href={r.href}><code>{r.name}</code></a></td>
-                <td>{r.description || r.title}</td>
-                <td>{r.rows.length}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </>
   )}
 
   <div class="prose" set:html={body} />
@@ -90,9 +68,5 @@ const defs = schema ? Object.keys(schema.$defs || {}) : [];
   )}
 
   <h2>Манифест модуля</h2>
-  <p>
-    Состав модуля объявлен машиночитаемо. Валидатор сверяет объявленные реестры с файлами в обе
-    стороны: необъявленный файл — такая же блокирующая ошибка, как объявленный реестр без файла.
-  </p>
   <pre><code>{JSON.stringify(man, null, 2)}</code></pre>
 </Base>

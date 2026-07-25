@@ -139,9 +139,17 @@ export function readDoc(...parts) {
  * Markdown канона в HTML. Относительные ссылки репозитория переписываются на
  * страницы витрины: реестр рядом с README — в свою таблицу, `../<модуль>` — в
  * страницу модуля. Что не удалось разложить, уходит на GitHub, а не в 404.
+ *
+ * strip убирает из канона то, что страница витрины уже нарисовала сама:
+ * "h1" — заголовок файла, "lead" — первый абзац, "table" — первую таблицу.
+ * В репозитории README остаётся целым, на странице ничего не задваивается.
  */
-export function renderMarkdown(md, area = null) {
-  const html = marked.parse(md, { mangle: false, headerIds: true });
+export function renderMarkdown(md, area = null, strip = []) {
+  let src = md;
+  if (strip.includes("h1")) src = src.replace(/^#\s[^\n]*\n+/, "");
+  if (strip.includes("lead")) src = src.replace(/^(?![#|])[^\n]+(\n(?![\n#|])[^\n]+)*\n+/, "");
+  if (strip.includes("table")) src = src.replace(/^\|[^\n]*\n(\|[^\n]*\n)*\n*/m, "");
+  const html = marked.parse(src, { mangle: false, headerIds: true });
   return html.replace(/href="([^"#][^"]*)"/g, (m, href) => {
     if (/^(https?:|mailto:|\/)/.test(href)) return m;
     // выкидываем ./ и ../: адрес страницы витрины не зависит от глубины файла в репозитории

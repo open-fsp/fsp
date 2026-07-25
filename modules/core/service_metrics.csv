@@ -1,5 +1,5 @@
 Метрики услуг
-Нормализованный закрытый список допустимых billing_metric для каждой стандартной услуги.
+Закрытый список допустимых billing_metric для каждой стандартной услуги.
 Код услуги,Код метрики,Статус
 supplier_pickup,items,allowed
 supplier_pickup,boxes,allowed

@@ -3,7 +3,8 @@ import Base from "../../layouts/Base.astro";
 import { allManifests, renderMarkdown, readDoc } from "../../lib/standard.js";
 
 const mods = allManifests();
-const body = renderMarkdown(readDoc("modules", "README.md"));
+// h1 и таблица модулей уже нарисованы страницей — из канона берём только текст ниже
+const body = renderMarkdown(readDoc("modules", "README.md"), null, ["h1", "table"]);
 ---
 
 <Base

@@ -1,4 +1,4 @@
-Исключения из каталога MPFIT v1.3
+Исключения из каталога
 Явные границы каталога: позиции ниже не получают canonical service_code.
 code,name,reason,treatment,source_example,status
 self_purchase_review,Самовыкуп и стимулированный отзыв,Манипуляция рейтингом и поведением площадки,reject,Самовыкуп + отзыв,excluded
