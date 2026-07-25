@@ -6,6 +6,7 @@ const { title, description, wide = false } = Astro.props;
 const path = Astro.url.pathname;
 const full = title ? `${title} — FSP` : "FSP — Fulfillment Services Protocol";
 const nav = [
+  ["/about/", "О стандарте"],
   ["/modules/", "Модули"],
   ["/profile/", "Манифест"],
   ["/rules/", "Правила"],

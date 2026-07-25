@@ -1,0 +1,17 @@
+---
+import Base from "../layouts/Base.astro";
+import { renderMarkdown, readDoc } from "../lib/standard.js";
+
+// h1 уже нарисован страницей
+const body = renderMarkdown(readDoc("ABOUT.md"), null, ["h1"]);
+---
+
+<Base
+  title="О стандарте"
+  description="Зачем нужен открытый стандарт услуг фулфилмента, какую задачу решает FSP, откуда взялся протокол, кто его ведёт и как участвовать."
+>
+  <p class="crumbs"><a href="/">FSP</a> / О стандарте</p>
+  <h1>О стандарте</h1>
+
+  <div class="prose" set:html={body} />
+</Base>

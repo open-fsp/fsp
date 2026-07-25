@@ -176,6 +176,7 @@ export function renderMarkdown(md, area = null, strip = []) {
       [new RegExp(`^${reg}\\.csv$`), (x) => (area ? `/registry/${area}/${x[1]}/` : null)],
       [/^CONTRIBUTING\.md$/, () => null],
       [/^CHANGELOG\.md$/, () => "/changelog/"],
+      [/^ABOUT\.md$/, () => "/about/"],
     ];
     for (const [re, to] of rules) {
       const hit = bare.match(re);
