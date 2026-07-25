@@ -30,6 +30,31 @@
       "enum": ["FBO", "FBS", "DBS"],
       "description": "Схема работы с маркетплейсом"
     },
+    "destination_code": {
+      "type": "string",
+      "description": "Код пункта назначения из реестра destinations (CAT-012)"
+    },
+    "destination_type": {
+      "type": "string",
+      "enum": ["warehouse", "sorting_center", "distribution_center", "transit_hub", "drop_off_point", "pickup_point"],
+      "description": "Склад маркетплейса, сортировочный или распределительный центр, транзитный хаб, точка сдачи заказов. pickup_point — пункт выдачи покупателю, в реестр не заносится и ссылается внешним идентификатором (CAT-012)"
+    },
+    "destination": {
+      "type": "object",
+      "description": "Пункт назначения. Пункты выдачи и постаматы в реестре не перечисляются: ссылка на них идёт полем external_id.",
+      "required": ["code", "name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "$ref": "#/$defs/destination_code" },
+        "name": { "type": "string" },
+        "type": { "$ref": "#/$defs/destination_type" },
+        "marketplace": { "$ref": "#/$defs/marketplace" },
+        "city": { "type": "string" },
+        "region": { "type": "string" },
+        "external_id": { "type": "string", "description": "Идентификатор пункта в системе маркетплейса" },
+        "status": { "type": "string", "enum": ["active", "unverified", "closed"] }
+      }
+    },
     "weekday": {
       "type": "string",
       "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]

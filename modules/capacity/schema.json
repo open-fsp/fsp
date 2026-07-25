@@ -94,7 +94,9 @@
       "properties": {
         "route_id": { "type": "string" },
         "location_id": { "type": "string" },
-        "destination": { "type": "string", "description": "Склад маркетплейса, город или адрес получателя" },
+        "destination": { "type": "string", "description": "Название для показа человеку; идентификатором не является (CAP-005)" },
+        "destination_code": { "$ref": "../core/schema.json#/$defs/destination_code" },
+        "destination_external": { "type": "string", "description": "Идентификатор пункта в системе маркетплейса: так ссылаются на ПВЗ и постаматы" },
         "marketplace": { "$ref": "../core/schema.json#/$defs/marketplace" },
         "transport_mode": { "type": "string", "enum": ["own", "carrier", "pickup"] },
         "active": { "type": "boolean" },
