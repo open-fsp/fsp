@@ -6,6 +6,7 @@ operator,legal_name,string,да,Юрлицо,ООО «Складсервис»
 operator,brand_name,string,нет,Витринное имя,Складсервис
 operator,status,enum,да,active / paused / draft — участие в маркетплейсе,active
 operator,contact_channel,string,да,Куда отдаём лид,tg:@sklad_ff
+operator,tax_id,string,нет,"Налоговый идентификатор юрлица в его стране: ИНН в России, VAT number в ЕС. Позволяет проверить контрагента и сверить заявленный режим НДС",7712345678
 operator_location,location_id,id,да,Склад оператора (их может быть несколько),loc_sklad_msk
 operator_location,operator_id,id,да,Оператор,operator_sklad
 operator_location,city,string,да,Город склада,Москва

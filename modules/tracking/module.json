@@ -4,8 +4,13 @@
   "version": "0.0",
   "status": "planned",
   "summary": "События по заказу и остатки на складе оператора.",
-  "depends": ["core", "order"],
+  "depends": [
+    "core",
+    "order"
+  ],
   "registries": [],
-  "rule_prefixes": ["TRACK"],
+  "rule_prefixes": [
+    "TRACK"
+  ],
   "note": "Не специфицируется до появления интеграции, которая его запросит."
 }

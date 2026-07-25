@@ -18,6 +18,7 @@ inbound_unloading,vehicles,allowed
 inbound_unloading,weight_kg,allowed
 inbound_unloading,volume_m3,allowed
 inbound_unloading,hours,allowed
+inbound_unloading,items,allowed
 crate_removal,items,allowed
 crate_removal,boxes,allowed
 crate_removal,pallets,allowed
@@ -125,6 +126,7 @@ outbound_dispatch,pallets,allowed
 outbound_dispatch,cargo_places,allowed
 outbound_dispatch,vehicles,allowed
 outbound_dispatch,hours,allowed
+outbound_dispatch,items,allowed
 marketplace_delivery,deliveries,allowed
 marketplace_delivery,vehicles,allowed
 marketplace_delivery,boxes,allowed
@@ -133,6 +135,7 @@ marketplace_delivery,cargo_places,allowed
 marketplace_delivery,weight_kg,allowed
 marketplace_delivery,volume_m3,allowed
 marketplace_delivery,distance_km,allowed
+marketplace_delivery,items,allowed
 return_pickup,items,allowed
 return_pickup,boxes,allowed
 return_pickup,pallets,allowed

@@ -49,6 +49,7 @@ AREAS = {
     'Примеры манифестов в profile/examples': 'Протокол',
     'Ступенчатые строки импорта без обязательных полей': 'Приложение',
     'Методы расчёта импорта вне реестра': 'Приложение',
+    'Единицы начисления импорта не разрешены для услуги': 'Приложение',
     'Строки импорта с целью price_adjustment': 'Приложение',
     'Шкалы, области и режимы импорта вне реестров': 'Приложение',
     'Разрывы и пересечения ступеней в импорте': 'Приложение',
@@ -269,6 +270,18 @@ def main():
             errs.append('%s: поле module = %r' % (m, d.get('module')))
         if not VERSION_RE.match(str(d.get('version', ''))):
             errs.append('%s: версия %r не в формате MAJOR.MINOR' % (m, d.get('version')))
+        published = d.get('versions')
+        if d.get('status') != 'planned':
+            if not published:
+                errs.append('%s: не объявлен список опубликованных версий' % m)
+            else:
+                bad = [v for v in published if not VERSION_RE.match(str(v))]
+                if bad:
+                    errs.append('%s: версии вне формата MAJOR.MINOR: %s' % (m, bad))
+                if published[-1] != d.get('version'):
+                    errs.append('%s: текущая версия %s не последняя в списке %s' % (m, d.get('version'), published))
+                if len(set(published)) != len(published):
+                    errs.append('%s: дубли в списке версий' % m)
         if d.get('status') not in ('stable', 'draft', 'planned'):
             errs.append('%s: статус %r вне stable/draft/planned' % (m, d.get('status')))
         for key in ('schema', 'api', 'profile'):
@@ -413,9 +426,10 @@ def main():
                 continue
             if man[name]['status'] == 'planned':
                 errs.append('%s: объявлен модуль %s со статусом planned' % (rel, name))
+            published = man[name].get('versions', [man[name]['version']])
             for v in decl.get('versions', []):
-                if v != man[name]['version']:
-                    errs.append('%s: %s версии %s не существует (есть %s)' % (rel, name, v, man[name]['version']))
+                if v not in published:
+                    errs.append('%s: %s версии %s не существует (опубликованы %s)' % (rel, name, v, published))
             if decl.get('level') and decl['level'] not in level_set:
                 errs.append('%s: %s уровень %s вне реестра уровней' % (rel, name, decl['level']))
             if decl.get('level') and name != 'pricing':
@@ -437,6 +451,7 @@ def main():
     if not has_imports:
         skip('Ступенчатые строки импорта без обязательных полей', 'нет данных разбора прайсов')
         skip('Методы расчёта импорта вне реестра', 'нет данных разбора прайсов')
+        skip('Единицы начисления импорта не разрешены для услуги', 'нет данных разбора прайсов')
         skip('Строки импорта с целью price_adjustment', 'нет данных разбора прайсов')
         skip('Шкалы, области и режимы импорта вне реестров', 'нет данных разбора прайсов')
         skip('Разрывы и пересечения ступеней в импорте', 'нет данных разбора прайсов')
@@ -475,6 +490,24 @@ def main():
             elif i.get('adjustment_type', '').strip():
                 errs.append('%s: adjustment_type заполнен у строки-правила' % i['import_id'])
         check('Строки импорта с целью price_adjustment', errs)
+
+        # Единица начисления обязана быть разрешена для услуги: источник истины —
+        # реестр «Метрики услуг» (CAT-010), а не текст строки прайса.
+        allowed_metrics = {}
+        for r in svc_metrics:
+            allowed_metrics.setdefault(r['Код услуги'], set()).add(r['Код метрики'])
+        errs = []
+        for i in imports:
+            metric = i.get('billing_metric', '').strip()
+            # ambiguous — разбор строки не завершён и ждёт ответа оператора;
+            # спрашивать с него соответствие реестру рано, он отслеживается в residual_gaps
+            if not metric or i.get('mapping_status', '').strip() == 'ambiguous':
+                continue
+            for code in split_list(i.get('service_codes', '')):
+                if code in allowed_metrics and metric not in allowed_metrics[code]:
+                    errs.append('%s: %s не допускает единицу %s (разрешены %s)'
+                                % (i['import_id'], code, metric, ', '.join(sorted(allowed_metrics[code]))))
+        check('Единицы начисления импорта не разрешены для услуги', errs)
 
         var_modes  = {v['Код']: set(split_list(v['Допустимые режимы'])) for v in tier_vars}
         var_scopes = {v['Код']: set(split_list(v['Допустимые области'])) for v in tier_vars}

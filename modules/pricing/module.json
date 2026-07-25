@@ -2,9 +2,14 @@
   "module": "pricing",
   "title": "FSP Pricing",
   "version": "1.0",
+  "versions": [
+    "1.0"
+  ],
   "status": "stable",
   "summary": "Как оператор описывает свой прайс: тарифный план, предложения, правила цены, условия, модификаторы, ступени.",
-  "depends": ["core"],
+  "depends": [
+    "core"
+  ],
   "registries": [
     "price_model",
     "price_conditions",
@@ -15,7 +20,11 @@
     "conformance_levels",
     "rules"
   ],
-  "rule_prefixes": ["PRICE", "TIME", "STORAGE"],
+  "rule_prefixes": [
+    "PRICE",
+    "TIME",
+    "STORAGE"
+  ],
   "schema": "schema.json",
   "conformance": {
     "levels_registry": "conformance_levels",
