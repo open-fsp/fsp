@@ -162,11 +162,6 @@ td code { white-space: nowrap; }
 .card p { margin: 0; color: var(--fg-soft); font-size: 0.88rem; }
 .card .meta { margin-top: 0.6rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
-.stats { display: flex; flex-wrap: wrap; gap: 0.75rem 2.5rem; margin: 1.5rem 0 0; }
-.stat { border-left: 2px solid var(--line); padding-left: 0.7rem; }
-.stat b { display: block; font-size: 1.35rem; letter-spacing: -0.02em; }
-.stat span { color: var(--fg-soft); font-size: 0.8rem; }
-
 .note {
   border-left: 3px solid var(--accent);
   background: var(--accent-soft);
