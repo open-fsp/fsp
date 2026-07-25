@@ -3,7 +3,7 @@
   "party": {
     "role": "aggregator",
     "id": "mpfit",
-    "name": "МПФИТ — биржа мощностей",
+    "name": "МПФИТ",
     "contact_channel": "https://mpfit.ru"
   },
   "modules": {
