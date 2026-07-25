@@ -69,4 +69,4 @@ procurement_action,Действие закупки,enum,search; purchase; negoti
 transfer_type,Тип перемещения,enum,stock_owner; warehouse; legal_entity; location; other,Перемещение запасов
 measurement_type,Тип измерения изделия,enum,size_chart; garment_dimensions; custom,Снятие мерок
 handover_recipient,Получатель при выдаче,enum,customer; seller; courier; other,Услуга и тариф
-stock_state,Стадия товара на складе,enum,in_receiving; in_storage; in_processing; awaiting_shipment,Хранение
+stock_state,Стадия товара на складе,enum,in_receiving; in_storage; in_processing; awaiting_shipment; in_shipment,Хранение
