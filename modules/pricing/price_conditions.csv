@@ -20,6 +20,7 @@ packaging_type,Операция,enum,eq; in,Тип упаковки
 marketplace,Контекст,enum,eq; in,Маркетплейс
 warehouse_id,Контекст,id,eq; in,Склад
 route_id,Контекст,id,eq; in,Маршрут
+destination_id,Маршрут,id,eq; in,Пункт назначения из реестра
 urgency,Контекст,enum,eq,Срочность
 units_per_order,Объём,integer,gt; gte; lt; lte; between,Товаров в заказе
 units_per_month,Объём,integer,gt; gte; lt; lte; between,Товаров в месяц

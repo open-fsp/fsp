@@ -9,7 +9,7 @@ quote_request,demand,object,нет,"{shipments_per_day, turnover_days, unit_volu
 quote_request,storage_need,object,нет,"Явное место {storage_type, temp_mode, qty_m2}; необязательно — иначе выводится из demand","{pallet, ambient, 20}"
 quote_request,throughput_need,object,нет,"{operation, metric, qty}; = shipments_per_day","{outbound, orders_per_day, 300}"
 quote_request,origin_geo,string,нет,Откуда забор (город/адрес),Москва
-quote_request,target_destinations,list,нет,Куда отгрузки (МП / направления),Коледино; Хоругвино
+quote_request,target_destinations,list,нет,"Куда нужны отгрузки: коды из реестра «Пункты назначения», внешние идентификаторы маркетплейса или названия свободным текстом",wb_koledino; wb_kazan
 quote_request,services_needed,list<service_code>,нет,Нужные услуги стандарта,goods_acceptance; honest_mark_labeling
 quote_request,scheme,enum,нет,FBO / FBS / DBS,FBO
 quote_request,start_date,date,нет,Желаемый старт,2026-08-01

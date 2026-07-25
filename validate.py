@@ -28,6 +28,7 @@ AREAS = {
     'Неизвестные коды метрик': 'core',
     'Дубли связей услуга-метрика': 'core',
     'Дубли кодов исключений': 'core',
+    'Реестр пунктов назначения': 'core',
     'Исключённые коды попали в каталог': 'core',
     'Дубли полей сущностей модели': 'pricing',
     'Дубли полей условий цены': 'pricing',
@@ -136,6 +137,7 @@ def main():
     tier_vars  = load('pricing/tier_variables', 'Код', R)
     tier_scopes= load('pricing/tier_scopes', 'Код', R)
     storage_ty = load('capacity/storage_types', 'Код', R)
+    destinations = load('core/destinations', 'Код', R)
     unmet      = load('quote/unmet_reasons', 'Код', R)
     # Разбор реальных прайсов операторов — данные их владельцев, в канон не входят.
     # Есть файл — импортные проверки выполняются, нет — помечаются пропущенными.
@@ -197,6 +199,23 @@ def main():
           [c for c, n in Counter(e['code'] for e in exclusions).items() if n > 1])
     check('Исключённые коды попали в каталог',
           [e['code'] for e in exclusions if e['code'] in svc_set])
+
+    core_defs = load_defs(R, 'core')
+    dest_types = set(core_defs.get('destination_type', {}).get('enum', []))
+    dest_markets = set(core_defs.get('marketplace', {}).get('enum', []))
+    dest_statuses = set(core_defs.get('destination', {}).get('properties', {})
+                        .get('status', {}).get('enum', []))
+    errs = ['дубль кода %s' % c for c, n in Counter(d['Код'] for d in destinations).items() if n > 1]
+    for d in destinations:
+        if d['Тип'] not in dest_types:
+            errs.append('%s: тип %r вне схемы' % (d['Код'], d['Тип']))
+        if d['Маркетплейс'] and d['Маркетплейс'] not in dest_markets:
+            errs.append('%s: маркетплейс %r вне схемы' % (d['Код'], d['Маркетплейс']))
+        if d['Статус'] not in dest_statuses:
+            errs.append('%s: статус %r вне схемы' % (d['Код'], d['Статус']))
+        if not d['Название'].strip():
+            errs.append('%s: пустое название' % d['Код'])
+    check('Реестр пунктов назначения', errs)
 
     # ---------- модель и условия цены (FSP Pricing) ----------
     check('Дубли полей сущностей модели',

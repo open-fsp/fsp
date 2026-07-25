@@ -29,7 +29,9 @@ throughput_capacity,free_capacity,decimal,да,Свободная пропуск
 throughput_capacity,updated_at,datetime,нет,Когда ФФ обновил,2026-07-24
 routes,route_id,id,да,Регулярное направление отгрузки со склада,route_sklad_msk_kaledino
 routes,location_id,id,да,Склад-отправитель (operator_location в FSP Core),loc_sklad_msk
-routes,destination,string,да,"Направление: склад маркетплейса, город или адрес получателя",Коледино
+routes,destination,string,да,"Человекочитаемое название направления. Для сравнения прайсов используется не оно, а destination_code",Коледино
+routes,destination_code,id,условно,"Код из реестра «Пункты назначения» FSP Core. Обязателен, если пункт есть в реестре: без него прайсы двух операторов несравнимы",wb_koledino
+routes,destination_external,string,условно,"Идентификатор пункта в системе маркетплейса. Так ссылаются на ПВЗ и постаматы, которых в реестре нет",wb:1733001
 routes,marketplace,enum,нет,wb / ozon / ym / avito / own / any — чей склад назначения,wb
 routes,transport_mode,enum,нет,own / carrier / pickup — чьим транспортом идёт отправка,own
 routes,active,boolean,да,Направление обслуживается,true
