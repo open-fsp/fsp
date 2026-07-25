@@ -19,6 +19,9 @@ services:
       - traefik.http.routers.openfsp.entrypoints=web,websecure
       - traefik.http.routers.openfsp.tls=true
       - traefik.http.routers.openfsp.tls.certresolver=mytlschallenge
+      # без этой строки заголовки ниже объявлены, но не применяются:
+      # браузер не получает HSTS и на первом заходе может сходить по http
+      - traefik.http.routers.openfsp.middlewares=openfsp
       - traefik.http.services.openfsp.loadbalancer.server.port=80
       - traefik.http.middlewares.openfsp.headers.SSLRedirect=true
       - traefik.http.middlewares.openfsp.headers.SSLHost=openfsp.ru
@@ -35,7 +38,7 @@ services:
       - traefik.http.routers.openfsp_www.entrypoints=web,websecure
       - traefik.http.routers.openfsp_www.tls=true
       - traefik.http.routers.openfsp_www.tls.certresolver=mytlschallenge
-      - traefik.http.routers.openfsp_www.middlewares=openfsp_www_redirect
+      - traefik.http.routers.openfsp_www.middlewares=openfsp,openfsp_www_redirect
       - traefik.http.routers.openfsp_www.service=openfsp
       - traefik.http.middlewares.openfsp_www_redirect.redirectregex.regex=^https?://www\.openfsp\.ru/(.*)
       - traefik.http.middlewares.openfsp_www_redirect.redirectregex.replacement=https://openfsp.ru/$${1}
