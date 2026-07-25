@@ -26,6 +26,9 @@ quote_response,handling_cost_per_unit,decimal,нет,Смета обработк
 quote_response,handling_cost_monthly,decimal,нет,Обработка за месяц = за шт × отгрузки × 30,276000
 quote_response,storage_cost_monthly,decimal,нет,Хранение за месяц по ставке ФФ,21600
 quote_response,estimated_quote,decimal,нет,Итоговая смета (обработка + хранение),297600
+quote_response,amount_net,decimal,условно,"Смета без НДС; обязательна вместе с vat_amount, если смета непустая",248000
+quote_response,vat_amount,decimal,условно,Сумма НДС отдельной величиной; 0 допустим и означает «без НДС»,49600
+quote_response,vat_mode,enum,условно,included / excluded — как НДС учтён в estimated_quote,included
 quote_response,quote_basis,string,нет,Из чего смета,обработка 92 ₽/шт × 3000 + хранение 6 м³ × 120 ₽ × 30
 quote_response,contact,string,да,Куда вести лид,tg:@sklad_ff
 quote_response,unmet,list,нет,Что не покрыто (если partial),нет заморозки

@@ -44,6 +44,10 @@
         "legal_name": { "type": "string" },
         "brand_name": { "type": "string" },
         "status": { "type": "string", "enum": ["active", "paused", "draft"] },
+        "tax_id": {
+          "type": "string",
+          "description": "Налоговый идентификатор юрлица в его стране: ИНН в России, VAT number в ЕС"
+        },
         "contact_channel": { "type": "string", "description": "Канал для связи с оператором" }
       }
     },
