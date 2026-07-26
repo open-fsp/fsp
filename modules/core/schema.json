@@ -23,12 +23,21 @@
     },
     "marketplace": {
       "type": "string",
-      "enum": ["wb", "ozon", "ym", "avito", "own", "any"]
+      "description": "Площадка, для которой оператор работает. Список не ограничен Россией: kaspi — Казахстан, uzum — Узбекистан",
+      "enum": [
+        "wb", "ozon", "ym", "avito", "lamoda", "mvideo", "leroy",
+        "kaspi", "uzum", "own", "any"
+      ]
     },
     "scheme": {
       "type": "string",
       "enum": ["FBO", "FBS", "DBS"],
       "description": "Схема работы с маркетплейсом"
+    },
+    "country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "Код страны ISO 3166-1 alpha-2"
     },
     "destination_code": {
       "type": "string",
@@ -42,13 +51,14 @@
     "destination": {
       "type": "object",
       "description": "Пункт назначения. Пункты выдачи и постаматы в реестре не перечисляются: ссылка на них идёт полем external_id.",
-      "required": ["code", "name", "type"],
+      "required": ["code", "name", "type", "country"],
       "additionalProperties": false,
       "properties": {
         "code": { "$ref": "#/$defs/destination_code" },
         "name": { "type": "string" },
         "type": { "$ref": "#/$defs/destination_type" },
         "marketplace": { "$ref": "#/$defs/marketplace" },
+        "country": { "$ref": "#/$defs/country" },
         "city": { "type": "string" },
         "region": { "type": "string" },
         "external_id": { "type": "string", "description": "Идентификатор пункта в системе маркетплейса" },
@@ -79,11 +89,12 @@
     "operator_location": {
       "type": "object",
       "description": "Склад оператора. Мощности и маршруты этого склада описываются в FSP Capacity.",
-      "required": ["location_id", "operator_id", "city", "region"],
+      "required": ["location_id", "operator_id", "country", "city", "region"],
       "additionalProperties": false,
       "properties": {
         "location_id": { "type": "string" },
         "operator_id": { "type": "string" },
+        "country": { "$ref": "#/$defs/country" },
         "city": { "type": "string" },
         "region": { "type": "string" },
         "address": { "type": "string" },
