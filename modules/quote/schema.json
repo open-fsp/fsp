@@ -22,6 +22,7 @@
         "origin_not_served",
         "storage_type_unavailable",
         "temp_mode_unavailable",
+        "capacity_not_comparable",
         "insufficient_free_area",
         "insufficient_throughput",
         "capacity_data_stale",

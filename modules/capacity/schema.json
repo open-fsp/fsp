@@ -60,18 +60,25 @@
     },
     "storage_capacity": {
       "type": "object",
-      "description": "Свободная площадь по типу и режиму хранения. Базовая единица — м² (CAP-001).",
-      "required": ["capacity_id", "location_id", "storage_type", "temp_mode", "free_m2"],
+      "description": "Свободная мощность по типу и режиму хранения. Величины равноправны, заполнить нужно хотя бы одну (CAP-001). Площадь без полезной высоты ёмкость не задаёт (CAP-006).",
+      "required": ["capacity_id", "location_id", "storage_type", "temp_mode"],
       "additionalProperties": false,
       "properties": {
         "capacity_id": { "type": "string" },
         "location_id": { "type": "string" },
         "storage_type": { "$ref": "#/$defs/storage_type" },
         "temp_mode": { "$ref": "#/$defs/temp_mode" },
-        "free_m2": { "type": "number", "minimum": 0 },
-        "pallet_places": { "type": "number", "minimum": 0, "description": "Производная от м² через коэффициент типа хранения" },
+        "free_m3": { "type": "number", "minimum": 0, "description": "Свободный объём: сравним с объёмом запроса напрямую" },
+        "free_pallet_places": { "type": "number", "minimum": 0, "description": "Свободные паллето-места как самостоятельная величина" },
+        "free_m2": { "type": "number", "minimum": 0, "description": "Свободная площадь" },
+        "usable_height_m": { "type": "number", "exclusiveMinimum": 0, "description": "Полезная высота хранения" },
         "updated_at": { "type": "string", "format": "date-time", "description": "Когда оператор обновил число" }
-      }
+      },
+      "anyOf": [
+        { "required": ["free_m3"] },
+        { "required": ["free_pallet_places"] },
+        { "required": ["free_m2"] }
+      ]
     },
     "throughput_capacity": {
       "type": "object",
