@@ -18,8 +18,10 @@ storage_capacity,capacity_id,id,да,Строка свободной площа�
 storage_capacity,location_id,id,да,Склад,loc_sklad_msk
 storage_capacity,storage_type,enum,да,Тип хранения (см. storage_types),pallet
 storage_capacity,temp_mode,enum,да,ambient / cold / frozen,ambient
-storage_capacity,free_m2,decimal,да,Свободная площадь в м² (базовая единица),80
-storage_capacity,pallet_places,decimal,нет,Паллето-места — производная от м² по коэффициенту storage_types,200
+storage_capacity,free_m2,decimal,условно,"Свободная площадь, м². Без usable_height_m ёмкость из неё не выводится (CAP-006)",80
+storage_capacity,free_m3,decimal,условно,"Свободный объём, м³. Самая точная величина: сравнима с объёмом запроса напрямую",144
+storage_capacity,free_pallet_places,decimal,условно,"Свободные паллето-места. Самостоятельная величина, а не производная от площади",200
+storage_capacity,usable_height_m,decimal,условно,"Полезная высота хранения, м. Обязательна, если заполнена только площадь",1.8
 storage_capacity,updated_at,datetime,нет,Когда ФФ обновил,2026-07-24
 throughput_capacity,throughput_id,id,да,Строка свободной пропускной способности (заполняет ФФ),thr_sklad_msk_out
 throughput_capacity,location_id,id,да,Склад,loc_sklad_msk
