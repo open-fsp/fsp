@@ -9,6 +9,7 @@ operator,contact_channel,string,да,Куда отдаём лид,tg:@sklad_ff
 operator,tax_id,string,нет,"Налоговый идентификатор юрлица в его стране: ИНН в России, VAT number в ЕС. Позволяет проверить контрагента и сверить заявленный режим НДС",7712345678
 operator_location,location_id,id,да,Склад оператора (их может быть несколько),loc_sklad_msk
 operator_location,operator_id,id,да,Оператор,operator_sklad
+operator_location,country,string,да,"Страна склада в коде ISO 3166-1 alpha-2. Без неё склад в Алматы и склад в Астрахани неразличимы по юрисдикции, валюте и режиму НДС",RU
 operator_location,city,string,да,Город склада,Москва
 operator_location,region,string,да,Регион,Московская область
 operator_location,address,string,нет,Адрес склада,"г. Москва, ул. ..."

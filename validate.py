@@ -211,6 +211,8 @@ def main():
             errs.append('%s: тип %r вне схемы' % (d['Код'], d['Тип']))
         if d['Маркетплейс'] and d['Маркетплейс'] not in dest_markets:
             errs.append('%s: маркетплейс %r вне схемы' % (d['Код'], d['Маркетплейс']))
+        if not re.match(r'^[A-Z]{2}$', d.get('Страна', '')):
+            errs.append('%s: страна %r не в формате ISO 3166-1 alpha-2' % (d['Код'], d.get('Страна')))
         if d['Статус'] not in dest_statuses:
             errs.append('%s: статус %r вне схемы' % (d['Код'], d['Статус']))
         if not d['Название'].strip():
