@@ -127,7 +127,7 @@
     "quote_response": {
       "type": "object",
       "description": "Оператор с непустым unmet никогда не имеет fit=full (QUOTE-004).",
-      "required": ["listing_id", "operator", "location_geo", "fit", "contact"],
+      "required": ["listing_id", "operator", "location_geo", "fit", "contact", "pricing_audience"],
       "additionalProperties": false,
       "properties": {
         "listing_id": { "type": "string" },
@@ -147,6 +147,11 @@
         "vat_mode": { "type": "string", "enum": ["included", "excluded"], "description": "Как НДС учтён в estimated_quote" },
         "quote_basis": { "type": "string", "description": "Человекочитаемая расшифровка сметы" },
         "pricing_level_used": { "$ref": "#/$defs/pricing_level" },
+        "pricing_audience": {
+          "type": "string",
+          "enum": ["public", "private"],
+          "description": "По публичному или адресному плану посчитана смета (QUOTE-009)"
+        },
         "assumptions": { "type": "array", "items": { "$ref": "#/$defs/assumption" } },
         "unmet": { "type": "array", "items": { "$ref": "#/$defs/unmet" } },
         "contact": { "type": "string" }

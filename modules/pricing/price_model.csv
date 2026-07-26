@@ -70,6 +70,8 @@ rate_cards,source_document_ref,string,нет,Ссылка на исходный 
 rate_cards,money_scale,integer,да,Число знаков денежного округления,2
 rate_cards,series_code,string,да,Стабильный код логической линейки тарифов,standard_fulfillment
 rate_cards,previous_rate_card_id,id,нет,Предыдущая опубликованная версия для аудита цепочки,rate_card_122
+rate_cards,audience,enum,да,public — участвует в сравнении и отдаётся всем; private — адресный план одного контрагента,public
+rate_cards,client_ref,string,условно,Идентификатор контрагента в системе оператора; обязателен при audience=private и запрещён при public,client_4417
 price_rules,tier_mode,enum,условно,"Обязателен при calculation_method=tiered; slab — вся величина по ставке итогового диапазона, progressive — величина делится по диапазонам",progressive
 price_rules,tier_variable,enum,условно,"Обязателен при calculation_method=tiered; код из реестра «Переменные диапазонов» — шкала, по которой режутся ступени",storage_age_days
 price_rules,tier_scope,enum,условно,"Обязателен при calculation_method=tiered; код из реестра «Области диапазонов» — группа, внутри которой шкала считается заново",batch
