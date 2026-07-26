@@ -26,7 +26,7 @@ order_assembly,Сборка заказа,orders; order_lines; items; boxes; hour
 product_packaging,Упаковка товара,items; orders; sets; boxes; hours,товар; заказ; набор; короб; час,тип упаковки,packaging_type; material_included,"Пакет, короб, ВПП, сейф-пакет",base
 carton_formation,Формирование короба,boxes; hours,короб; час,размер короба,carton_size,Сборка и заполнение короба,base
 pallet_formation,Паллетирование,pallets; boxes; cargo_places; hours,паллета; короб; грузовое место; час,схема укладки,pallet_layout,Размещение коробов на паллете,base
-pallet_wrapping,Обмотка паллеты плёнкой,pallets; layers; hours,паллета; слой обмотки; час,количество слоёв,wrap_layers,Стрейч-упаковка паллеты,base
+pallet_wrapping,Стрейчевание,pallets; layers; hours,паллета; слой обмотки; час,количество слоёв,wrap_layers,Обмотка паллеты стрейч-плёнкой для фиксации груза,base
 Хранение
 storage,Хранение,item_days; box_days; pallet_days; cargo_place_days; volume_m3_days; liter_days,товаро-день; коробо-день; паллето-день; место-день; м³-день; литро-день,зона; режим хранения,storage_zone; storage_mode; handling_unit,Базовое хранение,base
 secure_storage,Ответственное хранение,item_days; box_days; pallet_days; cargo_place_days; volume_m3_days; declared_value_rub,"товаро-день; коробо-день; паллето-день; место-день; м³-день; объявленная стоимость, ₽",уровень доступа,access_level,Для ценных товаров,base
