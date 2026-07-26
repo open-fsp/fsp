@@ -1,4 +1,4 @@
-Модель тарифов — FSP Pricing 1.0
+Модель тарифов — FSP Pricing
 Как оператор описывает свой прайс: rate_cards → offers → price_rules → price_tiers/price_adjustments. Маршруты и графики отправки описываются в FSP Capacity; здесь route_id — только входное поле условия.
 Сущность,Поле,Тип,Обязательно,Назначение,Пример
 rate_cards,id,id,да,Идентификатор тарифного плана,rate_card_123

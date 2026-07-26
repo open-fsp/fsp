@@ -1,4 +1,4 @@
-# FSP Pricing 1.0
+# FSP Pricing
 
 Прайс описывается так, чтобы по нему можно было посчитать смету, а не только прочитать глазами.
 
@@ -25,7 +25,7 @@
 | Реестр | Что внутри |
 |---|---|
 | [`price_model`](price_model.csv) | Сущности и поля: `rate_cards → offers → price_rules → price_tiers / price_adjustments` |
-| [`price_conditions`](price_conditions.csv) | Закрытый реестр 92 типизированных полей условий |
+| [`price_conditions`](price_conditions.csv) | Закрытый реестр 97 типизированных полей условий |
 | [`condition_operators`](condition_operators.csv) | Единая семантика операторов и поведение при `null` |
 | [`calculation_methods`](calculation_methods.csv) | Закрытый реестр значений `calculation_method` |
 | [`conformance_levels`](conformance_levels.csv) | Уровни соответствия L1/L2/L3 |

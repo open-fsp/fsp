@@ -48,6 +48,7 @@ AREAS = {
     'Перечисления схем расходятся с реестрами': 'Протокол',
     'Ссылки $ref в схемах модулей': 'Протокол',
     'Примеры манифестов в profile/examples': 'Протокол',
+    'Документация не расходится с реестрами': 'Протокол',
     'Ступенчатые строки импорта без обязательных полей': 'Приложение',
     'Методы расчёта импорта вне реестра': 'Приложение',
     'Единицы начисления импорта не разрешены для услуги': 'Приложение',
@@ -467,6 +468,57 @@ def main():
             if name not in mods:
                 errs.append('%s: точка входа для необъявленного модуля %s' % (rel, name))
     check('Примеры манифестов в profile/examples', errs)
+
+    # ---------- документация против реестров ----------
+    # Версия модуля живёт только в module.json, числа в README обязаны сходиться
+    # с реестрами. Заявление, которое не нашлось по шаблону, тоже ошибка: иначе
+    # переформулировка текста молча отключает проверку.
+    errs = []
+    ver_in_title = re.compile(r'FSP\s+[A-Za-z]+\s+\d+\.\d+')
+    for m in MODULES:
+        readme = os.path.join(module_dir(R, m), 'README.md')
+        if ver_in_title.search(open(readme, encoding='utf-8').readline()):
+            errs.append('modules/%s/README.md: версия модуля в заголовке — версия живёт в module.json' % m)
+        for csvp in sorted(glob.glob(os.path.join(module_dir(R, m), '*.csv'))):
+            if ver_in_title.search(open(csvp, encoding='utf-8').readline()):
+                errs.append('%s: версия модуля в преамбуле — версия живёт в module.json' % os.path.relpath(csvp, R))
+    row_re = re.compile(r'\|\s*\[`(%s)`\]\([^)]*\)\s*\|\s*([^|]+)\|\s*(\w+)\s*\|' % '|'.join(MODULES))
+    for rel in ('README.md', os.path.join('modules', 'README.md')):
+        text = open(os.path.join(R, rel), encoding='utf-8').read()
+        seen = set()
+        for mod, ver, status in row_re.findall(text):
+            seen.add(mod)
+            want = '—' if man[mod]['status'] == 'planned' else man[mod]['version']
+            if ver.strip() != want:
+                errs.append('%s: %s версии %s, в module.json %s' % (rel, mod, ver.strip(), want))
+            if status != man[mod]['status']:
+                errs.append('%s: статус %s = %s, в module.json %s' % (rel, mod, status, man[mod]['status']))
+        for mod in MODULES:
+            if mod not in seen:
+                errs.append('%s: в таблице модулей нет строки %s' % (rel, mod))
+    svc_typed = [s for s in services if s.get('Тип услуги', '').strip()]
+    base_n = sum(1 for s in svc_typed if s['Тип услуги'] == 'base')
+    industry_n = sum(1 for s in svc_typed if s['Тип услуги'] == 'industry')
+    claims = [
+        (os.path.join('modules', 'core', 'README.md'),
+         r'(\d+) услуг[аи]?: (\d+) базовых и (\d+) отраслевых', (len(svc_typed), base_n, industry_n)),
+        (os.path.join('modules', 'core', 'README.md'),
+         r'содержит (\d+) пунктов', (len(destinations),)),
+        (os.path.join('modules', 'pricing', 'README.md'),
+         r'(\d+) типизированных полей', (len(conditions),)),
+        (os.path.join('modules', 'quote', 'README.md'),
+         r'(\d+) кодов? непокрытия', (len(unmet),)),
+        ('README.md', r'из (\d+) причин', (len(unmet),)),
+        ('README.md', r'(\d+) блокирующ', (len(declared),)),
+    ]
+    for rel, pattern, want in claims:
+        text = open(os.path.join(R, rel), encoding='utf-8').read()
+        found = re.search(pattern, text)
+        if not found:
+            errs.append('%s: заявление /%s/ не найдено — обновите текст или шаблон проверки' % (rel, pattern))
+        elif tuple(int(g) for g in found.groups()) != want:
+            errs.append('%s: заявлено %s, по реестрам %s' % (rel, found.groups(), want))
+    check('Документация не расходится с реестрами', errs)
 
     # ---------- импорт прайсов (приложение) ----------
     if not has_imports:

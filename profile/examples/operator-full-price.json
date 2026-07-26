@@ -7,14 +7,14 @@
     "contact_channel": "tg:@sklad_ff"
   },
   "modules": {
-    "core": { "versions": ["1.0"] },
-    "pricing": { "versions": ["1.0"], "level": "L3" },
-    "capacity": { "versions": ["1.0"] }
+    "core": { "versions": ["2.0"] },
+    "pricing": { "versions": ["1.3"], "level": "L3" },
+    "capacity": { "versions": ["2.0"] }
   },
   "extensions": {
     "x-sklad:route-cutoff-fee": {
       "module": "pricing",
-      "versions": ["1.0"],
+      "versions": ["1.3"],
       "spec": "https://sklad.example/fsp/route-cutoff-fee",
       "candidate_for_standard": true
     }
