@@ -4,6 +4,7 @@
 supplier_pickup,route_id,required,,,Маршрут забора
 supplier_pickup,transport_type,optional,,,Тип транспорта
 inbound_unloading,loading_method,required,,,Ручная или механизированная разгрузка
+outbound_loading,loading_method,required,,,Ручная или механизированная погрузка
 inbound_unloading,handling_unit,conditional,если база начисления — единица обработки
 crate_removal,crate_type,optional
 crate_removal,removal_method,required

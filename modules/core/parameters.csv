@@ -9,7 +9,7 @@ marking_type,Тип маркировки,enum,barcode; sticker; honest_mark,На
 marketplace,Маркетплейс,enum,WB; OZON; YM; OTHER,"Поставка, доставка, кабинеты"
 urgency,Срочность,enum,standard; urgent,Условия и модификаторы цены
 storage_mode,Режим хранения,enum,standard; secure; temperature_controlled,Хранение
-loading_method,Способ разгрузки,enum,manual; mechanized,Разгрузка
+loading_method,Способ погрузочных работ,enum,manual; mechanized,Погрузка и разгрузка
 material_included,Материал включён,boolean,true; false,Упаковка и состав предложения
 route_id,Маршрут,reference,ID маршрута или направления,"Забор, доставка, возвраты"
 transport_type,Тип транспорта,enum,courier; van; truck; other,Забор и доставка

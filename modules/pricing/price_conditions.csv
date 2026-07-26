@@ -30,7 +30,7 @@ handling_unit,Операция,enum,eq; neq; in; not_in,Единица обра�
 storage_mode,Операция,enum,eq; neq; in; not_in,Режим хранения
 storage_type,Операция,enum,eq; neq; in; not_in,"Тип хранения из справочника FSP Capacity: паллетное, полочное, стеллажное, напольное, мезонин, насыпное"
 stock_state,Хранение,enum,eq; neq; in; not_in,"Стадия товара на складе: приёмка, хранение, обработка, ожидание отгрузки, отгрузка"
-loading_method,Операция,enum,eq; neq; in; not_in,Способ разгрузки
+loading_method,Операция,enum,eq; neq; in; not_in,Способ погрузочных работ: вручную или механизированно
 material_included,Операция,boolean,eq; exists,Материал включён
 transport_type,Контекст,enum,eq; neq; in; not_in,Тип транспорта
 acceptance_type,Операция,enum,eq; neq; in; not_in,Тип приёмки

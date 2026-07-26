@@ -34,6 +34,7 @@ pallet_wrapping,any
 storage,any
 secure_storage,any
 oversize_storage,any
+outbound_loading,any
 outbound_dispatch,any
 pickup_handover,any
 marketplace_delivery,any
