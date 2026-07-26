@@ -122,6 +122,14 @@ oversize_storage,item_days,allowed
 oversize_storage,pallet_days,allowed
 oversize_storage,cargo_place_days,allowed
 oversize_storage,volume_m3_days,allowed
+outbound_loading,items,allowed
+outbound_loading,boxes,allowed
+outbound_loading,pallets,allowed
+outbound_loading,cargo_places,allowed
+outbound_loading,vehicles,allowed
+outbound_loading,weight_kg,allowed
+outbound_loading,volume_m3,allowed
+outbound_loading,hours,allowed
 outbound_dispatch,orders,allowed
 outbound_dispatch,boxes,allowed
 outbound_dispatch,pallets,allowed
@@ -130,6 +138,12 @@ outbound_dispatch,vehicles,allowed
 outbound_dispatch,hours,allowed
 outbound_dispatch,items,allowed
 outbound_dispatch,liters,allowed
+pickup_handover,orders,allowed
+pickup_handover,shipments,allowed
+pickup_handover,items,allowed
+pickup_handover,boxes,allowed
+pickup_handover,pallets,allowed
+pickup_handover,hours,allowed
 marketplace_delivery,deliveries,allowed
 marketplace_delivery,vehicles,allowed
 marketplace_delivery,boxes,allowed

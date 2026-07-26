@@ -42,11 +42,20 @@
     "rate_card": {
       "type": "object",
       "description": "Версионированный прайс оператора. На момент расчёта активна ровно одна версия (TIME-001).",
-      "required": ["id", "provider_id", "series_code", "version", "status", "currency", "vat_mode", "vat_rate", "money_scale", "effective_from"],
+      "required": ["id", "provider_id", "series_code", "version", "status", "currency", "vat_mode", "vat_rate", "money_scale", "effective_from", "audience"],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string" },
         "provider_id": { "type": "string", "description": "operator_id в FSP Core" },
+        "audience": {
+          "type": "string",
+          "enum": ["public", "private"],
+          "description": "public — участвует в сравнении; private — адресный план одного контрагента (PRICE-022)"
+        },
+        "client_ref": {
+          "type": "string",
+          "description": "Идентификатор контрагента в системе оператора; обязателен при audience=private"
+        },
         "series_code": { "type": "string", "description": "Стабильный код линейки тарифов" },
         "version": { "type": "integer", "minimum": 1 },
         "status": { "type": "string", "enum": ["draft", "active", "retired"] },
@@ -60,7 +69,14 @@
         "published_at": { "type": "string", "format": "date-time", "description": "Обязательно при status=active" },
         "previous_rate_card_id": { "type": "string" },
         "source_document_ref": { "type": "string" }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "audience": { "const": "private" } }, "required": ["audience"] },
+          "then": { "required": ["client_ref"] },
+          "else": { "not": { "required": ["client_ref"] } }
+        }
+      ]
     },
     "offer": {
       "type": "object",

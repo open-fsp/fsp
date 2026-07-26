@@ -35,3 +35,4 @@ quote_response,unmet,list,нет,Что не покрыто (если partial),�
 quote_request,pricing_level_min,enum,нет,"Минимальный уровень FSP Pricing, с которым вызывающая сторона готова считать смету",L1
 quote_response,assumptions,list<object>,условно,"Допущения расчёта {code, value}; обязательны, если смета опирается на выведенные величины","{turnover_basis, stock_days}; {volume_per_m2, 1.8}"
 quote_response,pricing_level_used,enum,нет,"Уровень FSP Pricing, на котором фактически посчитана смета",L2
+quote_response,pricing_audience,enum,да,public / private — по публичному или по адресному плану посчитана смета,public

@@ -4,10 +4,10 @@
 
 | Модуль | Версия | Статус | О чём | Зависит от |
 |---|---|---|---|---|
-| [`core`](core) | 1.3 | stable | Общий язык: услуги, единицы начисления, категории, габариты, оператор и склад | — |
-| [`pricing`](pricing) | 1.2 | stable | Как оператор описывает свой прайс; уровни L1/L2/L3 | core |
+| [`core`](core) | 1.4 | stable | Общий язык: услуги, единицы начисления, категории, габариты, оператор и склад | — |
+| [`pricing`](pricing) | 1.3 | stable | Как оператор описывает свой прайс; уровни L1/L2/L3 | core |
 | [`capacity`](capacity) | 1.1 | stable | Что готов взять, сколько свободно, куда возит | core |
-| [`quote`](quote) | 1.2 | stable | Запрос сметы и ответ | core, pricing, capacity |
+| [`quote`](quote) | 1.3 | stable | Запрос сметы и ответ | core, pricing, capacity |
 | [`order`](order) | — | planned | Поставка, отгрузка, возврат | core, capacity |
 | [`tracking`](tracking) | — | planned | События по заказу и остатки | core, order |
 

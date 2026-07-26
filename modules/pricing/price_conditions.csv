@@ -28,7 +28,9 @@ units_per_month,Объём,integer,gt; gte; lt; lte; between,Товаров в �
 orders_per_month,Объём,integer,gt; gte; lt; lte; between,Заказов в месяц
 handling_unit,Операция,enum,eq; neq; in; not_in,Единица обработки
 storage_mode,Операция,enum,eq; neq; in; not_in,Режим хранения
-loading_method,Операция,enum,eq; neq; in; not_in,Способ разгрузки
+storage_type,Операция,enum,eq; neq; in; not_in,"Тип хранения из справочника FSP Capacity: паллетное, полочное, стеллажное, напольное, мезонин, насыпное"
+stock_state,Хранение,enum,eq; neq; in; not_in,"Стадия товара на складе: приёмка, хранение, обработка, ожидание отгрузки, отгрузка"
+loading_method,Операция,enum,eq; neq; in; not_in,Способ погрузочных работ: вручную или механизированно
 material_included,Операция,boolean,eq; exists,Материал включён
 transport_type,Контекст,enum,eq; neq; in; not_in,Тип транспорта
 acceptance_type,Операция,enum,eq; neq; in; not_in,Тип приёмки
@@ -65,6 +67,7 @@ marking_type,Операция,enum,eq; neq; in; not_in,Тип маркировк
 storage_age_days,Хранение,integer,gt; gte; lt; lte; between,Возраст партии на хранении в сутках
 inventory_rotation_method,Операция,enum,eq; neq; in; not_in,Метод ротации запасов
 pickup_source,Контекст,enum,eq; neq; in; not_in,Источник забора
+handover_recipient,Операция,enum,eq; neq; in; not_in,Получатель при выдаче со склада
 photo_type,Операция,enum,eq; neq; in; not_in,Тип фотофиксации
 image_count,Операция,integer,gt; gte; lt; lte; between,Количество изображений
 sealing_method,Операция,enum,eq; neq; in; not_in,Способ закрытия короба

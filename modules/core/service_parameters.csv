@@ -4,6 +4,7 @@
 supplier_pickup,route_id,required,,,Маршрут забора
 supplier_pickup,transport_type,optional,,,Тип транспорта
 inbound_unloading,loading_method,required,,,Ручная или механизированная разгрузка
+outbound_loading,loading_method,required,,,Ручная или механизированная погрузка
 inbound_unloading,handling_unit,conditional,если база начисления — единица обработки
 crate_removal,crate_type,optional
 crate_removal,removal_method,required
@@ -58,6 +59,7 @@ marketplace_account_management,marketplace,required
 expiration_check,expiration_check_type,required
 serial_number_recording,serial_number_format,required
 storage,inventory_rotation_method,optional,,FIFO,Метод складской ротации
+storage,stock_state,optional,,in_storage,За какую стадию оператор берёт хранение; по умолчанию только за товар на хранении
 supplier_pickup,pickup_source,optional,,supplier,Источник забора
 photo_documentation,photo_type,required
 photo_documentation,image_count,optional,,1
@@ -92,3 +94,5 @@ procurement_support,pickup_source,optional,,supplier,Источник
 inventory_transfer,transfer_type,required,,location,Тип перемещения
 garment_measurement,measurement_type,required,,size_chart,Тип измерения
 garment_measurement,apparel_type,optional,,,Тип изделия
+pickup_handover,handover_recipient,да,,,Кому передаётся товар: цена и порядок проверки зависят от получателя
+pickup_handover,identification_method,нет,,,"Как оператор убеждается, что перед ним нужный получатель"
