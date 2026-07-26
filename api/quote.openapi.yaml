@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: FSP Quote 1.0
+  title: FSP Quote API
   version: 1.0.0
   description: >
     Запрос сметы на фулфилмент и ответ с подошедшими операторами. Два входа:
@@ -14,8 +14,8 @@ info:
     unmet_reasons, а не текстом (QUOTE-003).
 
 servers:
-  - url: https://api.mpfit.ru/fsp/v1
-    description: Реализация МПФИТ (биржа мощностей)
+  - url: https://operator.example/fsp/v1
+    description: Пример адреса. Реальный адрес сторона объявляет в endpoints своего манифеста /.well-known/fsp
 
 paths:
   /.well-known/fsp:

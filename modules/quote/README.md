@@ -1,4 +1,4 @@
-# FSP Quote 1.0
+# FSP Quote
 
 Единый контракт: запрос на фулфилмент и ответ со сметой. Язык услуг берётся из [`core`](../core), движок цены из [`pricing`](../pricing), свободные мощности из [`capacity`](../capacity).
 
@@ -9,7 +9,7 @@ API: [`api/quote.openapi.yaml`](../../api/quote.openapi.yaml) — `POST /quote` 
 | Реестр | Что внутри |
 |---|---|
 | [`quote_model`](quote_model.csv) | Сущности `quote_request` и `quote_response` |
-| [`unmet_reasons`](unmet_reasons.csv) | Закрытый реестр 21 кода непокрытия с влиянием и подсказкой оператору |
+| [`unmet_reasons`](unmet_reasons.csv) | Закрытый реестр 22 кодов непокрытия с влиянием и подсказкой оператору |
 | [`rules`](rules.csv) | `QUOTE-*` |
 
 ## Запрос описывается работой, а не площадью

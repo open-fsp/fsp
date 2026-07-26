@@ -1,4 +1,4 @@
-Мощности и направления — FSP Capacity 1.0
+Мощности и направления — FSP Capacity
 "Что оператор готов взять (listing), сколько у него свободно (storage_capacity, throughput_capacity) и куда он возит (routes, route_schedules). Волатильные данные: заполняет и обновляет сам оператор."
 Сущность,Поле,Тип,Обязательно,Назначение,Пример
 listing,listing_id,id,да,Предложение склада в маркетплейсе,listing_sklad_msk
