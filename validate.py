@@ -518,6 +518,34 @@ def main():
             errs.append('%s: заявление /%s/ не найдено — обновите текст или шаблон проверки' % (rel, pattern))
         elif tuple(int(g) for g in found.groups()) != want:
             errs.append('%s: заявлено %s, по реестрам %s' % (rel, found.groups(), want))
+    # сводка 00_overview: каждое вычислимое значение против реестров
+    gaps = load('appendix/residual_gaps', 'code', R)
+    rules_std = sum(len([x for x in load('%s/rules' % m, 'ID', R) if x.get('ID', '').strip()])
+                    for m in MODULES if os.path.exists(os.path.join(module_dir(R, m), 'rules.csv')))
+    overview = {r['Показатель']: r['Значение'] for r in load('appendix/00_overview', 'Показатель', R)
+                if r.get('Показатель', '').strip() and r.get('Значение', '').strip()}
+    expected = {
+        'Модулей stable': sum(1 for m in MODULES if man[m]['status'] == 'stable'),
+        'Модулей planned': sum(1 for m in MODULES if man[m]['status'] == 'planned'),
+        'Базовых услуг': base_n,
+        'Отраслевых услуг': industry_n,
+        'Категорий': len([c for c in categories if c.get('Код', '').strip()]),
+        'Полей условий цены': len(conditions),
+        'Уровней соответствия прайса': len(levels),
+        'Методов расчёта цены': len(calc_methods),
+        'Переменных диапазонов': len(tier_vars),
+        'Областей диапазонов': len(tier_scopes),
+        'Причин непокрытия': len(unmet),
+        'Пунктов назначения': len(destinations),
+        'Нормативных правил стандарта': rules_std,
+        'Проверок целостности': len(declared),
+        'Открытых находок проверки': sum(1 for g in gaps if g.get('status') == 'open'),
+    }
+    for key, want in expected.items():
+        if key not in overview:
+            errs.append('appendix/00_overview.csv: нет показателя %r' % key)
+        elif overview[key] != str(want):
+            errs.append('appendix/00_overview.csv: %s = %s, по реестрам %s' % (key, overview[key], want))
     check('Документация не расходится с реестрами', errs)
 
     # ---------- импорт прайсов (приложение) ----------
