@@ -220,7 +220,6 @@ export function summary() {
     imports: hasRegistry("appendix", "price_imports")
       ? rowsOf("appendix", "price_imports").length
       : 166,
-    gaps: rowsOf("appendix", "residual_gaps").filter((g) => g.status === "open").length,
     registries: stable.reduce((n, m) => n + m.registries.length, 0),
   };
 }
