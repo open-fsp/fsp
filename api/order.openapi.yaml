@@ -3,15 +3,21 @@ info:
   title: FSP Order API
   version: 0.1.0
   description: >
-    Поставка на склад оператора: черновик, слоты под этот черновик,
-    подтверждение с бронью слота, отмена, документы. API реализует оператор и
+    Поставка на склад оператора: черновик, слоты под эту поставку,
+    подтверждение с бронью слота, смена слота, возврат в черновик, отмена,
+    документы. API реализует оператор и
     объявляет модуль order в своём манифесте /.well-known/fsp; вызывает его
     заявитель или его агент.
 
     Статус поставки меняется только по реестру supply_statuses (ORDER-003).
     Переводы в arrived и completed делает оператор в своей системе, поэтому
     методов для них здесь нет: заявитель видит их, опрашивая поставки по
-    updated_since. Отказы возвращаются кодами реестра error_codes FSP Core.
+    updated_since.
+
+    Отказы возвращаются кодами реестра error_codes FSP Core. Операция,
+    которая переводит поставку в статус, недостижимый из текущего,
+    возвращает INVALID_STATUS_TRANSITION. Операция, которая статус не меняет,
+    но в текущем статусе недоступна, возвращает STATUS_NOT_ALLOWED.
 
 servers:
   - url: https://operator.example/fsp/v1
@@ -24,8 +30,8 @@ paths:
       summary: Создать черновик поставки
       description: >
         Поставка создаётся в статусе draft. Слот черновик не удерживает
-        (ORDER-002). Грузоместо вне лимитов приёмки склада отклоняется сразу
-        (ORDER-007).
+        (ORDER-002). Черновик может быть неполным: грузоместа и их вес
+        сверяются с лимитами приёмки при подтверждении (ORDER-007).
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
@@ -53,7 +59,12 @@ paths:
           schema: { type: string }
         - name: updated_since
           in: query
-          description: Только поставки, менявшиеся с этого момента. Так заявитель узнаёт о переходах, которые делает оператор
+          description: >
+            Поставки с updated_at не раньше этого момента, граница включена.
+            Так заявитель узнаёт о переходах, которые делает оператор:
+            следующий опрос начинается с наибольшего updated_at прошлого
+            ответа, а поставка, пришедшая повторно, распознаётся по паре
+            supply_id и updated_at.
           schema: { type: string, format: date-time }
         - name: cursor
           in: query
@@ -63,7 +74,7 @@ paths:
           schema: { type: integer, minimum: 1, maximum: 300, default: 100 }
       responses:
         "200":
-          description: Страница списка
+          description: Страница списка, отсортированная по возрастанию updated_at, затем supply_id
           content:
             application/json:
               schema:
@@ -100,9 +111,11 @@ paths:
       summary: Изменить план поставки
       description: >
         Переданный список (items, packages) заменяет прежний целиком. В
-        черновике правка свободная; в подтверждённой поставке оператор вправе
-        потребовать новый слот и вернуть CONFLICT по полю slot_id (ORDER-006).
-        После приёмки на воротах план не меняется — STATUS_NOT_ALLOWED.
+        черновике правка свободная. В подтверждённой поставке принимается
+        правка, которая помещается в забронированный слот; иначе возвращается
+        CONFLICT по полю slot_id, и поставка остаётся прежней — чтобы изменить
+        её сильнее, поставку возвращают в черновик (ORDER-006). После приёмки
+        на воротах план не меняется — STATUS_NOT_ALLOWED.
       requestBody:
         required: true
         content:
@@ -128,8 +141,10 @@ paths:
       description: >
         Слоты считаются под состав и грузоместа конкретной поставки, поэтому
         запрашиваются по её идентификатору, а не выводятся из расписания
-        приёмки склада (ORDER-001). Список — срез на момент запроса: слот
-        бронируется только подтверждением.
+        приёмки склада (ORDER-001). Доступно для черновика и для
+        подтверждённой поставки, которой нужен другой слот; в остальных
+        статусах — STATUS_NOT_ALLOWED. Список — срез на момент запроса: слот
+        бронируется подтверждением или сменой слота.
       parameters:
         - name: date_from
           in: query
@@ -161,9 +176,11 @@ paths:
       operationId: confirmSupply
       summary: Подтвердить поставку и забронировать слот
       description: >
-        Переводит поставку из draft в confirmed. Если склад принимает только
-        по записи, slot_id обязателен. Занятый слот возвращает CONFLICT по
-        полю slot_id — слоты нужно запросить заново (ORDER-002).
+        Переводит поставку из draft в confirmed; из другого статуса —
+        INVALID_STATUS_TRANSITION. Если склад принимает только по записи,
+        slot_id обязателен. Занятый слот возвращает CONFLICT по полю slot_id —
+        слоты нужно запросить заново (ORDER-002). На этом шаге грузоместа
+        сверяются с лимитами приёмки склада (ORDER-007).
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
@@ -184,6 +201,61 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /supplies/{supply_id}/slot:
+    parameters:
+      - $ref: "#/components/parameters/SupplyId"
+    put:
+      operationId: changeSupplySlot
+      summary: Сменить слот подтверждённой поставки
+      description: >
+        Перенос без возврата в черновик (ORDER-012). Замена атомарна: прежняя
+        бронь сохраняется, пока новая не получена. Занятый слот возвращает
+        CONFLICT по полю slot_id, и бронь остаётся прежней. Статус поставки
+        не меняется; вне статуса confirmed — STATUS_NOT_ALLOWED.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slot_id]
+              properties:
+                slot_id: { type: string }
+      responses:
+        "200":
+          description: Поставка с новым слотом
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/order/schema.json#/$defs/supply"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /supplies/{supply_id}/reopen:
+    parameters:
+      - $ref: "#/components/parameters/SupplyId"
+    post:
+      operationId: reopenSupply
+      summary: Вернуть подтверждённую поставку в черновик
+      description: >
+        Переводит поставку из confirmed в draft и снимает бронь слота. Нужен,
+        когда правка не помещается в забронированный слот (ORDER-006): после
+        возврата состав меняется свободно, слоты запрашиваются заново. Из
+        другого статуса — INVALID_STATUS_TRANSITION.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Поставка в статусе draft, слот освобождён
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/order/schema.json#/$defs/supply"
+        default:
+          $ref: "#/components/responses/Error"
+
   /supplies/{supply_id}/cancel:
     parameters:
       - $ref: "#/components/parameters/SupplyId"
@@ -192,7 +264,8 @@ paths:
       summary: Отменить поставку
       description: >
         Доступна заявителю, пока поставка не принята на воротах; позже
-        возвращается STATUS_NOT_ALLOWED (ORDER-004). Отмена освобождает слот.
+        возвращается INVALID_STATUS_TRANSITION (ORDER-004). Отмена освобождает
+        слот.
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
@@ -287,7 +360,6 @@ components:
             $ref: "../modules/order/schema.json#/$defs/supply_package"
         pass:
           $ref: "../modules/order/schema.json#/$defs/supply_pass"
-        quote_ref: { type: string }
         comment: { type: string }
     SupplyPatch:
       type: object

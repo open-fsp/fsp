@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openfsp.ru/1.0/billing/schema.json",
-  "title": "FSP Billing 1.0",
+  "title": "FSP Billing",
   "description": "Фактические начисления оператора и акт за период. Начисление ссылается на правило прайса, по которому посчитано (BILL-001), акт согласуется сторонами по реестру состояний.",
   "$defs": {
     "charge_kind": {
@@ -11,7 +11,7 @@
     },
     "statement_state": {
       "type": "string",
-      "enum": ["draft", "in_review", "approved", "disputed", "paid"],
+      "enum": ["draft", "in_review", "approved", "disputed", "settled"],
       "description": "Код из закрытого реестра statement_states"
     },
     "calculation_part": {
@@ -52,8 +52,20 @@
         "adjustments": { "type": "array", "items": { "$ref": "#/$defs/calculation_adjustment" } }
       },
       "dependentRequired": { "billing_metric": ["quantity"] },
-      "if": { "properties": { "calculation_method": { "const": "manual_quote" } } },
-      "else": { "required": ["price_rule_id"] }
+      "allOf": [
+        {
+          "if": { "properties": { "calculation_method": { "const": "manual_quote" } } },
+          "else": { "required": ["price_rule_id"] }
+        },
+        {
+          "if": { "properties": { "calculation_method": { "enum": ["per_unit", "per_metric", "tiered"] } } },
+          "then": { "required": ["billing_metric", "quantity"] }
+        },
+        {
+          "if": { "properties": { "calculation_method": { "enum": ["flat", "per_unit", "per_metric"] } } },
+          "then": { "required": ["rate"] }
+        }
+      ]
     },
     "charge": {
       "type": "object",
@@ -78,7 +90,14 @@
       "allOf": [
         { "if": { "properties": { "kind": { "const": "service" } } }, "then": { "required": ["service_code", "calculation"] } },
         { "if": { "properties": { "kind": { "const": "material" } } }, "then": { "required": ["material_code", "calculation"] } },
-        { "if": { "properties": { "kind": { "enum": ["penalty", "compensation"] } } }, "then": { "required": ["comment"] } },
+        {
+          "if": { "properties": { "kind": { "enum": ["penalty", "compensation"] } } },
+          "then": { "required": ["comment"], "not": { "required": ["service_code"] } }
+        },
+        {
+          "if": { "required": ["subject_type"], "properties": { "subject_type": { "not": { "const": "period" } } } },
+          "then": { "required": ["subject_ref"] }
+        },
         { "if": { "properties": { "kind": { "const": "correction" } } }, "then": { "required": ["reverses_charge_id", "comment"] } },
         {
           "if": {
@@ -101,10 +120,13 @@
         "actor": { "type": "string", "enum": ["requester", "operator", "system"], "description": "system — автосогласование по сроку (BILL-011)" },
         "comment": { "type": "string", "description": "Обязателен при оспаривании (BILL-010)" },
         "charge_ids": { "type": "array", "items": { "type": "string" } }
-      }
+      },
+      "if": { "properties": { "to_state": { "const": "disputed" } } },
+      "then": { "required": ["comment"] }
     },
     "statement_payment": {
       "type": "object",
+      "description": "Платёж по акту, подтверждённый его получателем (BILL-012).",
       "required": ["paid_at", "amount"],
       "additionalProperties": false,
       "properties": {
@@ -117,7 +139,7 @@
       "type": "object",
       "description": "Акт за период. Две независимые оси: состав и согласование (BILL-007).",
       "required": [
-        "statement_id", "provider_id", "client_ref", "period_from", "period_to", "currency",
+        "statement_id", "provider_id", "client_ref", "period_from", "period_to", "timezone", "currency",
         "composition", "state", "state_changed_at", "amount_net", "vat_amount", "amount_total"
       ],
       "additionalProperties": false,
@@ -127,6 +149,7 @@
         "client_ref": { "type": "string" },
         "period_from": { "type": "string", "format": "date", "description": "Включительно" },
         "period_to": { "type": "string", "format": "date", "description": "Исключительно" },
+        "timezone": { "type": "string", "description": "Часовой пояс по базе IANA, в котором считаются границы периода (BILL-005)" },
         "currency": { "type": "string" },
         "composition": { "type": "string", "enum": ["open", "closed"], "description": "open — состав ещё меняется; closed — зафиксирован" },
         "state": { "$ref": "#/$defs/statement_state" },
@@ -140,7 +163,7 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "state": { "enum": ["in_review", "approved", "paid"] } } },
+          "if": { "properties": { "state": { "enum": ["in_review", "approved", "settled"] } } },
           "then": { "properties": { "composition": { "const": "closed" } } }
         }
       ]

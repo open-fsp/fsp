@@ -4,11 +4,11 @@
 charge,charge_id,id,да,operator,Идентификатор начисления,chg_2026_10_00871
 charge,statement_id,id,да,operator,"Акт периода, в который входит начисление",stm_2026_10_client_4417
 charge,kind,enum,да,operator,Код из реестра «Виды начислений»,service
-charge,service_code,string,условно,operator,Код услуги из каталога FSP Core; обязателен при kind=service,goods_acceptance
+charge,service_code,string,условно,operator,"Код услуги из каталога FSP Core; обязателен при kind=service, у штрафа и компенсации его нет (BILL-003)",goods_acceptance
 charge,material_code,string,условно,operator,Код материала из FSP Core; обязателен при kind=material,carton
 charge,occurred_at,datetime,да,operator,Когда услуга оказана; по этому моменту начисление относится к периоду (BILL-005),2026-10-12T14:20:00+03:00
 charge,subject_type,enum,нет,operator,К чему относится начисление: supply / order / shipment / return / batch / period,supply
-charge,subject_ref,string,условно,operator,"Идентификатор объекта; обязателен, если задан subject_type, кроме period",sup_2026_0142
+charge,subject_ref,string,условно,operator,"Идентификатор объекта; обязателен, если subject_type задан и не равен period",sup_2026_0142
 charge,amount_net,decimal,да,operator,"Сумма без НДС. Положительная — к оплате заявителем, отрицательная — в его пользу (BILL-006)",4455
 charge,vat_amount,decimal,да,operator,Сумма НДС; 0 допустим и означает «без НДС»,891
 charge,calculation,object,условно,operator,Снимок расчёта со ссылкой на правило прайса; обязателен при kind=service и kind=material,"{rate_card_123, price_rule_17, per_unit, items, 297, 15}"
@@ -19,7 +19,7 @@ charge_calculation,price_rule_id,id,условно,operator,Применённо
 charge_calculation,calculation_method,enum,да,operator,Метод расчёта из реестра FSP Pricing,per_unit
 charge_calculation,billing_metric,string,условно,operator,"Единица начисления; обязательна для per_unit, per_metric и tiered",items
 charge_calculation,quantity,decimal,условно,operator,Тарифицируемое количество после округления (PRICE-014); обязательно вместе с billing_metric,297
-charge_calculation,rate,decimal,условно,operator,Применённая ставка. У ступенчатого правила в режиме progressive ставки лежат в parts,15
+charge_calculation,rate,decimal,условно,operator,"Применённая ставка; обязательна для flat, per_unit и per_metric. У ступенчатого правила ставки лежат в parts",15
 charge_calculation,parts,list<calculation_part>,нет,operator,Разбивка по диапазонам ступенчатого правила,"{tier_1, 14, 0, 0}; {tier_2, 16, 120, 1920}"
 charge_calculation,adjustments,list<calculation_adjustment>,нет,operator,Применённые модификаторы отдельными строками (PRICE-005),"{adjustment_urgent, 445.5}"
 calculation_part,price_tier_id,id,да,operator,Диапазон из price_tiers,tier_2
@@ -33,6 +33,7 @@ statement,provider_id,id,да,operator,Оператор (operator_id в FSP Core
 statement,client_ref,string,да,operator,Идентификатор заявителя в системе оператора,client_4417
 statement,period_from,date,да,operator,Начало периода включительно,2026-10-01
 statement,period_to,date,да,operator,Конец периода исключительно,2026-11-01
+statement,timezone,string,да,operator,"Часовой пояс по базе IANA, в котором считаются границы периода: без него начисление в полночь попадает в разные месяцы у разных сторон (BILL-005)",Europe/Moscow
 statement,currency,string,да,operator,Валюта акта; одна на все его начисления,RUB
 statement,composition,enum,да,operator,open — состав ещё меняется; closed — зафиксирован (BILL-007),closed
 statement,state,enum,да,operator,Код из реестра «Состояния акта»,in_review
@@ -42,13 +43,13 @@ statement,amount_net,decimal,да,operator,Сумма начислений бе�
 statement,vat_amount,decimal,да,operator,Сумма НДС; 0 допустим,49600
 statement,amount_total,decimal,да,operator,Итог к оплате с НДС,297600
 statement,history,list<statement_event>,нет,operator,История смены состояний,"{draft → in_review, operator}"
-statement,payments,list<statement_payment>,нет,operator,Поступившие платежи по акту,"{2026-11-10, 297600}"
+statement,payments,list<statement_payment>,нет,operator,"Платежи по акту, подтверждённые получателем","{2026-11-10, 297600}"
 statement_event,at,datetime,да,operator,Когда состояние сменилось,2026-11-05T16:30:00+03:00
 statement_event,from_state,enum,нет,operator,Прежнее состояние; пусто у первой записи,in_review
 statement_event,to_state,enum,да,operator,Новое состояние,disputed
 statement_event,actor,enum,да,operator,requester / operator / system — кто сменил,requester
 statement_event,comment,string,условно,requester,Комментарий; обязателен при оспаривании (BILL-010),"Приёмка 12.10 посчитана по 300 единицам, принято 297"
 statement_event,charge_ids,list<id>,нет,requester,"Оспариваемые начисления, если спор о конкретных строках",chg_2026_10_00871
-statement_payment,paid_at,datetime,да,operator,Когда платёж поступил,2026-11-10T12:00:00+03:00
+statement_payment,paid_at,datetime,да,operator,Когда платёж поступил получателю,2026-11-10T12:00:00+03:00
 statement_payment,amount,decimal,да,operator,Сумма платежа,297600
 statement_payment,reference,string,нет,operator,Номер платёжного документа,п/п 481

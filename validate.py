@@ -112,43 +112,92 @@ def load_manifests(root):
 
 
 def transition_errors(rows):
-    """Реестр статусов с переходами: коды, стороны, достижимость, конечные статусы."""
+    """Реестр статусов с переходами: первая строка — начальный статус, из него достижим каждый
+    статус, из каждого статуса достижим конечный."""
+    need = ('Код', 'Кто переводит', 'Следующие', 'Конечный')
+    missing = [c for c in need if rows and c not in rows[0]]
+    if missing or not rows:
+        return ['в реестре нет колонок %s' % missing if rows else 'реестр пуст']
     codes = [r['Код'] for r in rows]
     errs = ['дубль кода %s' % c for c, n in Counter(codes).items() if n > 1]
     known = set(codes)
-    nexts, incoming = {}, Counter()
+    nexts, finals = {}, set()
     for r in rows:
         code, final = r['Код'], r['Конечный'].strip()
-        nexts[code] = [n for n in split_list(r['Следующие']) if n in known]
-        for n in split_list(r['Следующие']):
+        declared = split_list(r['Следующие'])
+        nexts[code] = [n for n in declared if n in known and n != code]
+        for n in declared:
             if n not in known:
                 errs.append('%s → %s: переход в неизвестный статус' % (code, n))
             elif n == code:
                 errs.append('%s: переход в самого себя' % code)
-            else:
-                incoming[n] += 1
         if final not in ('да', 'нет'):
             errs.append('%s: колонка «Конечный» = %r, ожидается да/нет' % (code, final))
-        elif final == 'да' and split_list(r['Следующие']):
-            errs.append('%s: конечный, но имеет переходы' % code)
-        elif final == 'нет' and not split_list(r['Следующие']):
+        elif final == 'да':
+            finals.add(code)
+            if declared:
+                errs.append('%s: конечный, но имеет переходы' % code)
+        elif not declared:
             errs.append('%s: не конечный и без переходов' % code)
         who = split_list(r['Кто переводит'])
         if not who:
             errs.append('%s: не указано, кто переводит' % code)
         errs += ['%s: сторона %r вне %s' % (code, w, '/'.join(ACTORS)) for w in who if w not in ACTORS]
-    initial = [c for c in codes if not incoming[c]]
-    if len(initial) != 1:
-        errs.append('начальный статус должен быть ровно один, найдено: %s' % (initial or '—'))
-    else:
-        seen, queue = set(initial), list(initial)
+
+    def reachable(start, edges):
+        seen, queue = set(start), list(start)
         while queue:
-            for n in nexts.get(queue.pop(), []):
+            for n in edges.get(queue.pop(), []):
                 if n not in seen:
                     seen.add(n)
                     queue.append(n)
-        errs += ['%s: недостижим из начального статуса %s' % (c, initial[0]) for c in codes if c not in seen]
+        return seen
+
+    from_initial = reachable([codes[0]], nexts)
+    errs += ['%s: недостижим из начального статуса %s' % (c, codes[0]) for c in codes if c not in from_initial]
+    back = {}
+    for code, targets in nexts.items():
+        for n in targets:
+            back.setdefault(n, []).append(code)
+    if not finals:
+        errs.append('нет ни одного конечного статуса')
+    to_final = reachable(sorted(finals), back)
+    errs += ['%s: из статуса нет пути к конечному' % c for c in codes if c not in to_final]
     return errs
+
+
+def resolve_ref(root, module, ref):
+    """Определение схемы по $ref: локальному или в схему соседнего модуля."""
+    target, _, pointer = ref.partition('#')
+    path = os.path.normpath(os.path.join(module_dir(root, module), target or 'schema.json'))
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding='utf-8') as f:
+        node = json.load(f)
+    for part in [x for x in pointer.split('/') if x]:
+        node = node.get(part, {}) if isinstance(node, dict) else {}
+    return node
+
+
+def conditional_fields(definition):
+    """Поля, обязательность которых схема задаёт условием: if/then/else, anyOf, dependentRequired."""
+    out = set()
+
+    def required_in(node):
+        if isinstance(node, dict):
+            out.update(node.get('required', []))
+            for v in node.values():
+                required_in(v)
+        elif isinstance(node, list):
+            for v in node:
+                required_in(v)
+
+    for key in ('if', 'then', 'else', 'allOf', 'anyOf', 'oneOf', 'not'):
+        required_in(definition.get(key))
+    for field, deps in definition.get('dependentRequired', {}).items():
+        out.add(field)
+        out.update(deps)
+    return out
 
 
 def load_defs(root, module):
@@ -288,6 +337,14 @@ def main():
             errs.append('%s: HTTP-статус %r не из 4xx/5xx' % (e['Код'], e['HTTP']))
         if not e['Смысл'].strip() or not e['Что делать вызывающей стороне'].strip():
             errs.append('%s: не заполнен смысл или действие вызывающей стороны' % e['Код'])
+        want_http = {'field': '422', 'state': '409', 'rule': '422'}.get(e['Класс'])
+        if want_http and e['HTTP'].strip() != want_http:
+            errs.append('%s: класс %s возвращается с HTTP %s, указан %s' % (e['Код'], e['Класс'], want_http, e['HTTP']))
+    field_codes = set(e['Код'] for e in error_codes if e['Класс'] == 'field')
+    in_schema = set(core_defs.get('field_error_code', {}).get('enum', []))
+    if field_codes != in_schema:
+        errs.append('коды класса field: в реестре %s, в схеме field_error_code %s'
+                    % (sorted(field_codes - in_schema) or '—', sorted(in_schema - field_codes) or '—'))
     own_rule = [e['Код'] for e in error_codes if e['Класс'] == 'rule']
     if len(own_rule) != 1:
         errs.append('код собственного правила стороны должен быть ровно один (ERR-004), найдено: %s' % (own_rule or '—'))
@@ -424,8 +481,8 @@ def main():
                 errs.append('%s: зависит от неизвестного модуля %s' % (m, dep))
             elif dep == m:
                 errs.append('%s: зависит от себя' % m)
-            elif man[m]['status'] == 'stable' and man[dep]['status'] == 'planned':
-                errs.append('%s (stable) зависит от %s (planned)' % (m, dep))
+            elif man[m]['status'] == 'stable' and man[dep]['status'] != 'stable':
+                errs.append('%s (stable) зависит от %s (%s)' % (m, dep, man[dep]['status']))
 
     def path_exists(a, b, seen=None):
         """Есть ли путь по зависимостям от a к b."""
@@ -621,36 +678,55 @@ def main():
     # ---------- модели сущностей против схем ----------
     # Реестр-модель читает человек, схему — программа. Поле, описанное в одном месте
     # и забытое в другом, даёт две разные спецификации одного объекта.
+    JSON_TYPES = {'id': 'string', 'string': 'string', 'enum': 'string', 'date': 'string', 'datetime': 'string',
+                  'time': 'string', 'decimal': 'number', 'integer': 'integer', 'boolean': 'boolean', 'object': 'object'}
+    FORMATS = {'date': 'date', 'datetime': 'date-time'}
     errs = []
     for m, rows in sorted(entity_models.items()):
         defs = load_defs(R, m)
         errs += ['%s: дубль поля %s.%s' % ((m,) + k)
                  for k, n in Counter((r['Сущность'], r['Поле']) for r in rows).items() if n > 1]
-        fields, required = {}, {}
+        fields, required, conditional, types = {}, {}, {}, {}
         for r in rows:
-            fields.setdefault(r['Сущность'], set()).add(r['Поле'])
-            need = r['Обязательно'].strip()
+            entity, field, need = r['Сущность'], r['Поле'], r['Обязательно'].strip()
+            fields.setdefault(entity, set()).add(field)
+            types[(entity, field)] = r['Тип'].strip()
             if need not in ('да', 'нет', 'условно'):
-                errs.append('%s: %s.%s — «Обязательно» = %r' % (m, r['Сущность'], r['Поле'], need))
+                errs.append('%s: %s.%s — «Обязательно» = %r' % (m, entity, field, need))
             if need == 'да':
-                required.setdefault(r['Сущность'], set()).add(r['Поле'])
+                required.setdefault(entity, set()).add(field)
+            if need == 'условно':
+                conditional.setdefault(entity, set()).add(field)
             if r['Заполняет'].strip() not in ACTORS:
-                errs.append('%s: %s.%s — «Заполняет» = %r' % (m, r['Сущность'], r['Поле'], r['Заполняет']))
+                errs.append('%s: %s.%s — «Заполняет» = %r' % (m, entity, field, r['Заполняет']))
         for entity in sorted(fields):
             d = defs.get(entity)
             if not d:
                 errs.append('%s: сущности %s нет в схеме' % (m, entity))
                 continue
-            props = set(d.get('properties', {}))
-            for f in sorted(fields[entity] - props):
+            props = d.get('properties', {})
+            for f in sorted(fields[entity] - set(props)):
                 errs.append('%s: поле %s.%s есть в модели, но не в схеме' % (m, entity, f))
-            for f in sorted(props - fields[entity]):
+            for f in sorted(set(props) - fields[entity]):
                 errs.append('%s: поле %s.%s есть в схеме, но не в модели' % (m, entity, f))
             if set(d.get('required', [])) != required.get(entity, set()):
                 errs.append('%s: обязательные поля %s расходятся: схема %s, модель %s'
                             % (m, entity, sorted(d.get('required', [])), sorted(required.get(entity, set()))))
+            # «условно» без условия в схеме — обещание, которое никто не проверяет
+            for f in sorted(conditional.get(entity, set()) - conditional_fields(d)):
+                errs.append('%s: поле %s.%s условно-обязательное, но условия в схеме нет' % (m, entity, f))
+            for f in sorted(fields[entity] & set(props)):
+                kind, prop = types[(entity, f)], props[f]
+                target = resolve_ref(R, m, prop['$ref']) if '$ref' in prop else prop
+                want = 'array' if kind.startswith('list<') else JSON_TYPES.get(kind)
+                if want and target.get('type') != want:
+                    errs.append('%s: %s.%s — в модели %s, в схеме тип %r' % (m, entity, f, kind, target.get('type')))
+                if kind == 'enum' and 'enum' not in target:
+                    errs.append('%s: %s.%s — в модели enum, в схеме перечисления нет' % (m, entity, f))
+                if kind in FORMATS and target.get('format') != FORMATS[kind]:
+                    errs.append('%s: %s.%s — в модели %s, в схеме формат %r' % (m, entity, f, kind, target.get('format')))
         errs += ['%s: объект схемы %s не описан в модели' % (m, name)
-                 for name, d in sorted(defs.items()) if d.get('type') == 'object' and name not in fields]
+                 for name, d in sorted(defs.items()) if 'properties' in d and name not in fields]
     check('Модели сущностей расходятся со схемами', errs)
 
     # ---------- импорт прайсов (приложение) ----------

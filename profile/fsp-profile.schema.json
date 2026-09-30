@@ -85,7 +85,7 @@
     },
     "endpoints": {
       "type": "object",
-      "description": "Точки входа стороны по модулям; ключ — код модуля",
+      "description": "Базовые адреса API стороны по модулям; ключ — код модуля. Пути из OpenAPI модуля добавляются к базовому адресу",
       "additionalProperties": { "type": "string", "format": "uri" }
     },
     "updated_at": { "type": "string", "format": "date-time" }

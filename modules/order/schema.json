@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openfsp.ru/1.0/order/schema.json",
-  "title": "FSP Order 1.0",
+  "title": "FSP Order",
   "description": "Поставка на склад как объект обмена между заявителем и оператором. План заполняет заявитель, факт приёмки — оператор (ORDER-005). Отгрузка и возврат этой версией не описаны.",
   "$defs": {
     "supply_status": {
@@ -40,7 +40,7 @@
     },
     "supply_package": {
       "type": "object",
-      "description": "Грузоместо поставки. Вес и габариты сверяются с лимитами приёмки склада при оформлении, а не на воротах (ORDER-007).",
+      "description": "Грузоместо поставки. Вес и габариты сверяются с лимитами приёмки склада при подтверждении, а не на воротах (ORDER-007).",
       "required": ["package_number", "package_type"],
       "additionalProperties": false,
       "properties": {
@@ -57,7 +57,7 @@
     },
     "supply_slot": {
       "type": "object",
-      "description": "Интервал сдачи, выданный под конкретную поставку (ORDER-001). Бронируется только подтверждением (ORDER-002).",
+      "description": "Интервал сдачи, выданный под конкретную поставку (ORDER-001). Бронируется подтверждением (ORDER-002) и меняется без возврата в черновик (ORDER-012).",
       "required": ["slot_id", "starts_at", "ends_at"],
       "additionalProperties": false,
       "properties": {
@@ -94,14 +94,15 @@
         "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/supply_item" } },
         "packages": { "type": "array", "items": { "$ref": "#/$defs/supply_package" } },
         "pass": { "$ref": "#/$defs/supply_pass" },
-        "quote_ref": { "type": "string", "description": "Принятая смета FSP Quote как основание поставки" },
         "comment": { "type": "string" },
         "cancelled_by": { "type": "string", "enum": ["requester", "operator"] },
         "cancel_reason": { "type": "string" },
         "created_at": { "type": "string", "format": "date-time" },
         "updated_at": { "type": "string", "format": "date-time", "description": "По этому полю заявитель опрашивает изменения" },
         "status_changed_at": { "type": "string", "format": "date-time" }
-      }
+      },
+      "if": { "properties": { "status": { "const": "cancelled" } } },
+      "then": { "required": ["cancelled_by", "cancel_reason"] }
     },
     "supply_document": {
       "type": "object",
@@ -116,7 +117,10 @@
         "expires_at": { "type": "string", "format": "date-time" },
         "created_at": { "type": "string", "format": "date-time" }
       },
-      "dependentRequired": { "url": ["expires_at"] }
+      "dependentRequired": { "url": ["expires_at"], "expires_at": ["url"] },
+      "if": { "properties": { "status": { "const": "available" } } },
+      "then": { "required": ["url"] },
+      "else": { "not": { "required": ["url"] } }
     }
   }
 }

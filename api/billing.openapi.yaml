@@ -3,14 +3,17 @@ info:
   title: FSP Billing API
   version: 0.1.0
   description: >
-    Акты оператора и их начисления: чтение, согласование и оспаривание. API
+    Акты оператора и их начисления: чтение, согласование, оспаривание и
+    закрытие расчёта. API
     реализует оператор и объявляет модуль billing в своём манифесте
     /.well-known/fsp; вызывает его заявитель или его агент.
 
     Каждое начисление за услугу несёт ссылку на правило прайса и снимок
     расчёта (BILL-001, BILL-002), поэтому акт сверяется с прайсом программой.
-    Состояние акта меняется только по реестру statement_states. Отказы
-    возвращаются кодами реестра error_codes FSP Core.
+    Состояние акта меняется только по реестру statement_states: операция,
+    которая переводит акт в состояние, недостижимое из текущего, возвращает
+    INVALID_STATUS_TRANSITION. Отказы возвращаются кодами реестра error_codes
+    FSP Core.
 
 servers:
   - url: https://operator.example/fsp/v1
@@ -117,7 +120,8 @@ paths:
       operationId: approveStatement
       summary: Согласовать акт
       description: >
-        Доступно только для акта на проверке; иначе STATUS_NOT_ALLOWED.
+        Доступно только для акта на проверке; из другого состояния —
+        INVALID_STATUS_TRANSITION (BILL-010).
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       responses:
@@ -137,8 +141,9 @@ paths:
       operationId: disputeStatement
       summary: Оспорить акт
       description: >
-        Доступно только для акта на проверке. Комментарий обязателен; если
-        спор о конкретных строках, они перечисляются в charge_ids (BILL-010).
+        Доступно только для акта на проверке; из другого состояния —
+        INVALID_STATUS_TRANSITION. Комментарий обязателен; если спор о
+        конкретных строках, они перечисляются в charge_ids (BILL-010).
         Неизвестный charge_id возвращает UNKNOWN_REFERENCE с указанием поля.
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
@@ -157,6 +162,37 @@ paths:
       responses:
         "200":
           description: Акт оспорен
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/billing/schema.json#/$defs/statement"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /statements/{statement_id}/settle:
+    parameters:
+      - $ref: "#/components/parameters/StatementId"
+    post:
+      operationId: settleStatement
+      summary: Подтвердить поступление платежа заявителем
+      description: >
+        Расчёт закрывает получатель платежа (BILL-012). При отрицательном
+        итоге акта платит оператор, и получатель — заявитель: этим запросом
+        он переводит согласованный акт в settled. При положительном и нулевом
+        итоге расчёт закрывает оператор в своей системе, а этот запрос
+        возвращает FORBIDDEN. Несогласованный акт возвращает
+        INVALID_STATUS_TRANSITION.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../modules/billing/schema.json#/$defs/statement_payment"
+      responses:
+        "200":
+          description: Расчёт закрыт
           content:
             application/json:
               schema:

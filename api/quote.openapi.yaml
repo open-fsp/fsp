@@ -55,6 +55,11 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        default:
+          description: Иной отказ запросу целиком — авторизация, лимит запросов, сбой
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
   /quote/free-form:
     post:
@@ -94,6 +99,11 @@ paths:
                     items: { type: string }
                   result:
                     $ref: "#/components/schemas/QuoteResult"
+        default:
+          description: Отказ запросу целиком
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
 components:
   schemas:
@@ -132,8 +142,9 @@ components:
     Error:
       type: object
       description: >
-        Отказ запросу целиком (ERR-002). Сторона, объявившая core 2.1 и выше,
-        берёт code из закрытого реестра error_codes FSP Core (ERR-001).
+        Отказ запросу целиком. Код рекомендуется брать из реестра error_codes
+        FSP Core; для этого API, опубликованного раньше реестра, это не
+        обязательно (ERR-006).
       required: [code, message]
       properties:
         code: { type: string }

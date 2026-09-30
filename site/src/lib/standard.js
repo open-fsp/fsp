@@ -131,6 +131,14 @@ export function allRules() {
   return out;
 }
 
+/**
+ * OpenAPI модуля для отдачи с витрины. В репозитории схемы лежат в modules/<модуль>/,
+ * на сайте — в /1.0/<модуль>/: ссылки переписываются, иначе с адреса сайта они не разрешаются.
+ */
+export function apiSpec(name) {
+  return readFileSync(join(ROOT, "api", `${name}.openapi.yaml`), "utf8").replaceAll('"../modules/', '"../');
+}
+
 export function readDoc(...parts) {
   return readFileSync(join(ROOT, ...parts), "utf8");
 }
