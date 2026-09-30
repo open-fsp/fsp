@@ -23,7 +23,7 @@ export const ROOT = findRoot();
 /** Адрес канона. Меняется в одном месте: сайт, llms.txt и главная берут его отсюда. */
 export const REPO = "https://github.com/open-fsp/fsp";
 export const GITHUB = REPO + "/blob/main";
-export const MODULES = ["core", "pricing", "capacity", "quote", "order", "tracking"];
+export const MODULES = ["core", "pricing", "capacity", "quote", "order", "billing", "tracking"];
 
 function dirOf(area) {
   return area === "appendix" ? join(ROOT, "appendix") : join(ROOT, "modules", area);
@@ -171,7 +171,7 @@ export function renderMarkdown(md, area = null, strip = []) {
       [/^fsp-profile\.schema\.json$/, () => "/1.0/profile/fsp-profile.schema.json"],
       [/^profile\/fsp-profile\.schema\.json$/, () => "/1.0/profile/fsp-profile.schema.json"],
       [/^examples\/?$/, () => "/profile/#examples"],
-      [/^api\/quote\.openapi\.yaml$/, () => "/artifacts/#api"],
+      [/^api\/(quote|order|billing)\.openapi\.yaml$/, () => "/artifacts/#api"],
       [/^schema\.json$/, () => (area && MODULES.includes(area) ? `/1.0/${area}/schema.json` : null)],
       [new RegExp(`^${reg}\\.csv$`), (x) => (area ? `/registry/${area}/${x[1]}/` : null)],
       [/^CONTRIBUTING\.md$/, () => null],

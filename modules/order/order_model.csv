@@ -1,0 +1,51 @@
+Поставка на склад — FSP Order
+"Поставка как объект обмена между заявителем и оператором: состав, грузоместа, слот сдачи, пропуск, документы. Колонка «Заполняет» разводит план и факт: план вносит заявитель, факт приёмки — оператор."
+Сущность,Поле,Тип,Обязательно,Заполняет,Назначение,Пример
+supply,supply_id,id,да,operator,Идентификатор поставки; выдаётся при создании черновика,sup_2026_0142
+supply,location_id,id,да,requester,Склад оператора (operator_location в FSP Core),loc_sklad_msk
+supply,client_ref,string,нет,requester,"Идентификатор заявителя в системе оператора; не нужен, если оператор опознаёт заявителя по токену",client_4417
+supply,external_ref,string,нет,requester,Номер поставки в системе заявителя,PO-1187
+supply,status,enum,да,operator,Код из реестра «Статусы поставки»,draft
+supply,planned_date,date,да,requester,Желаемая дата сдачи на склад,2026-10-12
+supply,slot,object,условно,operator,"Забронированный слот сдачи. Обязателен с подтверждения, если склад принимает только по записи (intake_terms.slot_required)","{slot_1012_10, 2026-10-12T10:00+03:00, 2026-10-12T11:00+03:00}"
+supply,items,list<supply_item>,да,requester,Состав поставки,"{SKU-001, 300}; {SKU-002, 120}"
+supply,packages,list<supply_package>,нет,requester,Грузоместа: короба и паллеты с раскладкой состава,"{1, pallet}; {2, box}"
+supply,pass,object,нет,requester,"Данные для пропуска на территорию; передаются, только если склад его требует (ORDER-010)","{Иванов И. И., А123ВС777}"
+supply,quote_ref,string,нет,requester,Принятая смета FSP Quote как основание поставки,quote_88213
+supply,comment,string,нет,requester,Комментарий заявителя,"Хрупкое, разгрузка вручную"
+supply,cancelled_by,enum,условно,operator,requester / operator — кто отменил; обязателен при status=cancelled,requester
+supply,cancel_reason,string,условно,operator,Причина отмены; обязательна при status=cancelled,Перенос на другую дату
+supply,created_at,datetime,да,operator,Когда создан черновик,2026-10-05T12:00:00+03:00
+supply,updated_at,datetime,да,operator,Когда поставка менялась последний раз; по этому полю заявитель опрашивает изменения,2026-10-12T10:40:00+03:00
+supply,status_changed_at,datetime,нет,operator,Когда поставка перешла в текущий статус,2026-10-12T10:40:00+03:00
+supply_item,sku,string,да,requester,Артикул заявителя,SKU-001
+supply_item,barcode,string,нет,requester,Штрихкод единицы товара,4601234567890
+supply_item,name,string,нет,requester,Название для показа человеку,"Футболка белая, M"
+supply_item,planned_qty,decimal,да,requester,"Сколько заявитель собирается привезти. Ноль у строки, которой в плане не было (ORDER-005)",300
+supply_item,accepted_qty,decimal,нет,operator,Сколько оператор принял годным,297
+supply_item,defect_qty,decimal,нет,operator,Сколько оператор принял с браком,3
+supply_item,discrepancy_note,string,нет,operator,Пояснение оператора к расхождению,Три единицы с повреждённой упаковкой
+supply_package,package_id,id,нет,operator,Идентификатор грузоместа; выдаётся при сохранении,pkg_0142_1
+supply_package,package_number,integer,да,requester,Порядковый номер грузоместа в поставке,1
+supply_package,package_type,enum,да,requester,box / pallet / place,pallet
+supply_package,weight_kg,decimal,нет,requester,Вес грузоместа; сверяется с лимитами приёмки (ORDER-007),320
+supply_package,length_cm,decimal,нет,requester,Длина грузоместа,120
+supply_package,width_cm,decimal,нет,requester,Ширина грузоместа,80
+supply_package,height_cm,decimal,нет,requester,Высота грузоместа,160
+supply_package,items,list<package_item>,нет,requester,Что лежит в грузоместе,"{SKU-001, 300}"
+supply_package,accepted,boolean,нет,operator,Грузоместо принято на воротах,true
+package_item,sku,string,да,requester,Артикул из состава поставки,SKU-001
+package_item,qty,decimal,да,requester,Количество в этом грузоместе,300
+supply_slot,slot_id,id,да,operator,Идентификатор слота; им заявитель подтверждает поставку,slot_1012_10
+supply_slot,starts_at,datetime,да,operator,"Начало интервала сдачи, с часовым поясом",2026-10-12T10:00:00+03:00
+supply_slot,ends_at,datetime,да,operator,"Конец интервала сдачи, с часовым поясом",2026-10-12T11:00:00+03:00
+supply_pass,driver_name,string,да,requester,ФИО водителя,Иванов Иван Иванович
+supply_pass,driver_phone,string,нет,requester,Телефон водителя,+79001234567
+supply_pass,vehicle_plate,string,да,requester,Госномер машины,А123ВС777
+supply_pass,vehicle_model,string,нет,requester,Марка и модель машины,ГАЗель NEXT
+supply_document,document_id,id,да,operator,Идентификатор документа,doc_0142_act
+supply_document,type,enum,да,operator,Код из реестра «Виды документов поставки»,acceptance_act
+supply_document,status,enum,да,operator,pending — формируется; available — готов,available
+supply_document,url,string,условно,operator,Временная ссылка на файл; есть только у available (ORDER-009),https://operator.example/files/doc_0142_act.pdf?token=…
+supply_document,expires_at,datetime,условно,operator,До какого момента ссылка действует; обязателен вместе с url,2026-10-12T20:00:00+03:00
+supply_document,created_at,datetime,нет,operator,Когда документ сформирован,2026-10-12T11:05:00+03:00

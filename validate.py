@@ -8,7 +8,7 @@
 import csv, sys, os, json, re, glob, argparse
 from collections import Counter
 
-MODULES = ['core', 'pricing', 'capacity', 'quote', 'order', 'tracking']
+MODULES = ['core', 'pricing', 'capacity', 'quote', 'order', 'billing', 'tracking']
 
 # Область каждой проверки: модуль FSP или «Приложение» для реестров вне стандарта.
 # Реестр appendix/integrity_checks.csv обязан совпадать с этим списком по имени и области.
@@ -30,6 +30,8 @@ AREAS = {
     'Дубли кодов исключений': 'core',
     'Реестр пунктов назначения': 'core',
     'Исключённые коды попали в каталог': 'core',
+    'Каталог кодов ошибок обмена': 'core',
+    'Виды грузомест вне параметра handling_unit': 'core',
     'Дубли полей сущностей модели': 'pricing',
     'Дубли полей условий цены': 'pricing',
     'Дубли кодов переменных диапазонов': 'pricing',
@@ -40,6 +42,8 @@ AREAS = {
     'Уровни соответствия и методы расчёта': 'pricing',
     'Сущности модели цены без уровня соответствия': 'pricing',
     'Коды причин непокрытия': 'quote',
+    'Статусы поставки и переходы': 'order',
+    'Состояния акта и переходы': 'billing',
     'Манифесты модулей заполнены': 'Протокол',
     'Реестры модулей не расходятся с файлами': 'Протокол',
     'Зависимости модулей': 'Протокол',
@@ -49,6 +53,7 @@ AREAS = {
     'Ссылки $ref в схемах модулей': 'Протокол',
     'Примеры манифестов в profile/examples': 'Протокол',
     'Документация не расходится с реестрами': 'Протокол',
+    'Модели сущностей расходятся со схемами': 'Протокол',
     'Ступенчатые строки импорта без обязательных полей': 'Приложение',
     'Методы расчёта импорта вне реестра': 'Приложение',
     'Единицы начисления импорта не разрешены для услуги': 'Приложение',
@@ -59,6 +64,9 @@ AREAS = {
 }
 VERSION_RE = re.compile(r'^[0-9]+\.[0-9]+$')
 EXT_RE = re.compile(r'^x-[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*$')
+ERROR_CODE_RE = re.compile(r'^[A-Z][A-Z_]*[A-Z]$')
+ERROR_CLASSES = ('request', 'field', 'state', 'rule')
+ACTORS = ('requester', 'operator', 'system')
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -103,6 +111,46 @@ def load_manifests(root):
     return out
 
 
+def transition_errors(rows):
+    """Реестр статусов с переходами: коды, стороны, достижимость, конечные статусы."""
+    codes = [r['Код'] for r in rows]
+    errs = ['дубль кода %s' % c for c, n in Counter(codes).items() if n > 1]
+    known = set(codes)
+    nexts, incoming = {}, Counter()
+    for r in rows:
+        code, final = r['Код'], r['Конечный'].strip()
+        nexts[code] = [n for n in split_list(r['Следующие']) if n in known]
+        for n in split_list(r['Следующие']):
+            if n not in known:
+                errs.append('%s → %s: переход в неизвестный статус' % (code, n))
+            elif n == code:
+                errs.append('%s: переход в самого себя' % code)
+            else:
+                incoming[n] += 1
+        if final not in ('да', 'нет'):
+            errs.append('%s: колонка «Конечный» = %r, ожидается да/нет' % (code, final))
+        elif final == 'да' and split_list(r['Следующие']):
+            errs.append('%s: конечный, но имеет переходы' % code)
+        elif final == 'нет' and not split_list(r['Следующие']):
+            errs.append('%s: не конечный и без переходов' % code)
+        who = split_list(r['Кто переводит'])
+        if not who:
+            errs.append('%s: не указано, кто переводит' % code)
+        errs += ['%s: сторона %r вне %s' % (code, w, '/'.join(ACTORS)) for w in who if w not in ACTORS]
+    initial = [c for c in codes if not incoming[c]]
+    if len(initial) != 1:
+        errs.append('начальный статус должен быть ровно один, найдено: %s' % (initial or '—'))
+    else:
+        seen, queue = set(initial), list(initial)
+        while queue:
+            for n in nexts.get(queue.pop(), []):
+                if n not in seen:
+                    seen.add(n)
+                    queue.append(n)
+        errs += ['%s: недостижим из начального статуса %s' % (c, initial[0]) for c in codes if c not in seen]
+    return errs
+
+
 def load_defs(root, module):
     """$defs схемы модуля; пустой словарь, если схемы нет."""
     p = os.path.join(module_dir(root, module), 'schema.json')
@@ -140,6 +188,15 @@ def main():
     storage_ty = load('capacity/storage_types', 'Код', R)
     destinations = load('core/destinations', 'Код', R)
     unmet      = load('quote/unmet_reasons', 'Код', R)
+    error_codes = load('core/error_codes', 'Код', R)
+    supply_statuses = load('order/supply_statuses', 'Код', R)
+    document_types  = load('order/document_types', 'Код', R)
+    statement_states = load('billing/statement_states', 'Код', R)
+    charge_kinds    = load('billing/charge_kinds', 'Код', R)
+    entity_models = {
+        'order': load('order/order_model', 'Поле', R),
+        'billing': load('billing/billing_model', 'Поле', R),
+    }
     # Разбор реальных прайсов операторов — данные их владельцев, в канон не входят.
     # Есть файл — импортные проверки выполняются, нет — помечаются пропущенными.
     has_imports = os.path.exists(os.path.join(module_dir(R, 'appendix'), 'price_imports.csv'))
@@ -220,6 +277,30 @@ def main():
             errs.append('%s: пустое название' % d['Код'])
     check('Реестр пунктов назначения', errs)
 
+    # ---------- ошибки обмена и грузоместа (FSP Core) ----------
+    errs = ['дубль кода %s' % c for c, n in Counter(e['Код'] for e in error_codes).items() if n > 1]
+    for e in error_codes:
+        if not ERROR_CODE_RE.match(e['Код']):
+            errs.append('%s: код не в формате UPPER_SNAKE' % e['Код'])
+        if e['Класс'] not in ERROR_CLASSES:
+            errs.append('%s: класс %r вне %s' % (e['Код'], e['Класс'], '/'.join(ERROR_CLASSES)))
+        if not re.match(r'^[45][0-9]{2}$', e['HTTP'].strip()):
+            errs.append('%s: HTTP-статус %r не из 4xx/5xx' % (e['Код'], e['HTTP']))
+        if not e['Смысл'].strip() or not e['Что делать вызывающей стороне'].strip():
+            errs.append('%s: не заполнен смысл или действие вызывающей стороны' % e['Код'])
+    own_rule = [e['Код'] for e in error_codes if e['Класс'] == 'rule']
+    if len(own_rule) != 1:
+        errs.append('код собственного правила стороны должен быть ровно один (ERR-004), найдено: %s' % (own_rule or '—'))
+    check('Каталог кодов ошибок обмена', errs)
+
+    handling_units = set(v for p in params if p['Код'] == 'handling_unit'
+                         for v in split_list(p['Допустимые значения']))
+    package_types = core_defs.get('package_type', {}).get('enum', [])
+    errs = [t for t in package_types if t not in handling_units]
+    if not package_types:
+        errs.append('в схеме core нет перечисления package_type')
+    check('Виды грузомест вне параметра handling_unit', errs)
+
     # ---------- модель и условия цены (FSP Pricing) ----------
     check('Дубли полей сущностей модели',
           [k for k, n in Counter((m['Сущность'], m['Поле']) for m in model).items() if n > 1])
@@ -280,6 +361,10 @@ def main():
              for u in unmet if not u['Что делать оператору'].strip()]
     check('Коды причин непокрытия', errs)
 
+    # ---------- статусы с переходами (FSP Order, FSP Billing) ----------
+    check('Статусы поставки и переходы', transition_errors(supply_statuses))
+    check('Состояния акта и переходы', transition_errors(statement_states))
+
     # ---------- манифесты модулей ----------
     errs = []
     REQUIRED = ('module', 'title', 'version', 'status', 'summary', 'depends', 'registries', 'rule_prefixes')
@@ -309,6 +394,14 @@ def main():
         for key in ('schema', 'api', 'profile'):
             if d.get(key) and not os.path.exists(os.path.join(module_dir(R, m), d[key])):
                 errs.append('%s: %s указывает на отсутствующий файл %s' % (m, key, d[key]))
+    # манифест стороны обязан знать те же модули, что и валидатор
+    with open(os.path.join(R, 'profile', 'fsp-profile.schema.json'), encoding='utf-8') as f:
+        prof_props = json.load(f)['properties']
+    for where, enum in (('modules', prof_props['modules']['propertyNames']['enum']),
+                        ('extensions.module', prof_props['extensions']['additionalProperties']
+                         ['properties']['module']['enum'])):
+        if set(enum) != set(MODULES):
+            errs.append('схема манифеста, %s: модули %s, в валидаторе %s' % (where, sorted(enum), sorted(MODULES)))
     check('Манифесты модулей заполнены', errs)
 
     errs = []
@@ -385,6 +478,11 @@ def main():
     enum_matches('pricing', 'condition_operator', [o['Оператор'] for o in cond_ops], 'condition_operators')
     enum_matches('quote', 'unmet_code', [u['Код'] for u in unmet], 'unmet_reasons')
     enum_matches('quote', 'pricing_level', sorted(level_set), 'conformance_levels')
+    enum_matches('core', 'error_code', [e['Код'] for e in error_codes], 'error_codes')
+    enum_matches('order', 'supply_status', [s['Код'] for s in supply_statuses], 'supply_statuses')
+    enum_matches('order', 'document_type', [d['Код'] for d in document_types], 'document_types')
+    enum_matches('billing', 'statement_state', [s['Код'] for s in statement_states], 'statement_states')
+    enum_matches('billing', 'charge_kind', [k['Код'] for k in charge_kinds], 'charge_kinds')
     check('Перечисления схем расходятся с реестрами', errs)
 
     # ---------- ссылки между схемами ----------
@@ -520,6 +618,41 @@ def main():
             errs.append('%s: заявлено %s, по реестрам %s' % (rel, found.groups(), want))
     check('Документация не расходится с реестрами', errs)
 
+    # ---------- модели сущностей против схем ----------
+    # Реестр-модель читает человек, схему — программа. Поле, описанное в одном месте
+    # и забытое в другом, даёт две разные спецификации одного объекта.
+    errs = []
+    for m, rows in sorted(entity_models.items()):
+        defs = load_defs(R, m)
+        errs += ['%s: дубль поля %s.%s' % ((m,) + k)
+                 for k, n in Counter((r['Сущность'], r['Поле']) for r in rows).items() if n > 1]
+        fields, required = {}, {}
+        for r in rows:
+            fields.setdefault(r['Сущность'], set()).add(r['Поле'])
+            need = r['Обязательно'].strip()
+            if need not in ('да', 'нет', 'условно'):
+                errs.append('%s: %s.%s — «Обязательно» = %r' % (m, r['Сущность'], r['Поле'], need))
+            if need == 'да':
+                required.setdefault(r['Сущность'], set()).add(r['Поле'])
+            if r['Заполняет'].strip() not in ACTORS:
+                errs.append('%s: %s.%s — «Заполняет» = %r' % (m, r['Сущность'], r['Поле'], r['Заполняет']))
+        for entity in sorted(fields):
+            d = defs.get(entity)
+            if not d:
+                errs.append('%s: сущности %s нет в схеме' % (m, entity))
+                continue
+            props = set(d.get('properties', {}))
+            for f in sorted(fields[entity] - props):
+                errs.append('%s: поле %s.%s есть в модели, но не в схеме' % (m, entity, f))
+            for f in sorted(props - fields[entity]):
+                errs.append('%s: поле %s.%s есть в схеме, но не в модели' % (m, entity, f))
+            if set(d.get('required', [])) != required.get(entity, set()):
+                errs.append('%s: обязательные поля %s расходятся: схема %s, модель %s'
+                            % (m, entity, sorted(d.get('required', [])), sorted(required.get(entity, set()))))
+        errs += ['%s: объект схемы %s не описан в модели' % (m, name)
+                 for name, d in sorted(defs.items()) if d.get('type') == 'object' and name not in fields]
+    check('Модели сущностей расходятся со схемами', errs)
+
     # ---------- импорт прайсов (приложение) ----------
     if not has_imports:
         skip('Ступенчатые строки импорта без обязательных полей', 'нет данных разбора прайсов')
@@ -649,9 +782,10 @@ def main():
                 print("               → %s" % (e,))
             total += len(errs)
     print("=" * 62)
-    print("Проверок: %d, из них пропущено %d. Модулей: %d (%d stable, %d planned)." % (
+    print("Проверок: %d, из них пропущено %d. Модулей: %d (%d stable, %d draft, %d planned)." % (
         len(fails), len(skipped), len(MODULES),
         sum(1 for m in MODULES if man[m]['status'] == 'stable'),
+        sum(1 for m in MODULES if man[m]['status'] == 'draft'),
         sum(1 for m in MODULES if man[m]['status'] == 'planned')))
     if total:
         print("БЛОКИРУЮЩИХ ОШИБОК: %d — публикация запрещена." % total)

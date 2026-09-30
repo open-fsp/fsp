@@ -8,13 +8,14 @@ const byArea = [...MODULES, "appendix"]
   .filter((g) => g.items.length);
 const label = {
   core: "FSP Core", pricing: "FSP Pricing", capacity: "FSP Capacity",
-  quote: "FSP Quote", appendix: "Приложение (вне стандарта)",
+  quote: "FSP Quote", order: "FSP Order", billing: "FSP Billing",
+  appendix: "Приложение (вне стандарта)",
 };
 ---
 
 <Base
   title="Нормативные правила"
-  description={`Все ${rules.length} нормативных правил FSP по модулям: каталог, цена, мощности, смета, манифест.`}
+  description={`Все ${rules.length} нормативных правил FSP по модулям: каталог, цена, мощности, смета, поставка, начисления, манифест.`}
 >
   <p class="crumbs"><a href="/">FSP</a> / Правила</p>
   <h1>Нормативные правила</h1>

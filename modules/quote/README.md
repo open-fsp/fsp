@@ -2,7 +2,7 @@
 
 Единый контракт: запрос на фулфилмент и ответ со сметой. Язык услуг берётся из [`core`](../core), движок цены из [`pricing`](../pricing), свободные мощности из [`capacity`](../capacity).
 
-API: [`api/quote.openapi.yaml`](../../api/quote.openapi.yaml) — `POST /quote` и `POST /quote/free-form`.
+API: [`api/quote.openapi.yaml`](../../api/quote.openapi.yaml) — `POST /quote` и `POST /quote/free-form`. Отказ запросу целиком возвращается кодом из реестра [`error_codes`](../core/error_codes.csv) FSP Core.
 
 ## Реестры
 

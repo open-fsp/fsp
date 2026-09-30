@@ -1,17 +1,18 @@
 {
   "module": "core",
   "title": "FSP Core",
-  "version": "2.0",
+  "version": "2.1",
   "versions": [
     "1.0",
     "1.1",
     "1.2",
     "1.3",
     "1.4",
-    "2.0"
+    "2.0",
+    "2.1"
   ],
   "status": "stable",
-  "summary": "Общий язык: услуги, единицы начисления, категории товара, габаритные профили, оператор и склад.",
+  "summary": "Общий язык: услуги, единицы начисления, категории товара, габаритные профили, оператор и склад, коды ошибок обмена.",
   "depends": [],
   "registries": [
     "catalog_services",
@@ -28,6 +29,7 @@
     "category_mapping",
     "destinations",
     "operators",
+    "error_codes",
     "rules"
   ],
   "rule_prefixes": [
@@ -36,7 +38,8 @@
     "MAP",
     "DATA",
     "SCOPE",
-    "PROFILE"
+    "PROFILE",
+    "ERR"
   ],
   "schema": "schema.json",
   "profile": "../../profile/fsp-profile.schema.json"

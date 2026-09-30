@@ -143,6 +143,7 @@ td code { white-space: nowrap; }
 }
 .badge.stable { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
 .badge.planned { color: var(--fg-faint); }
+.badge.draft { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
 .badge.level { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
 .badge.exclude { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
 

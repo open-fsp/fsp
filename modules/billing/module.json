@@ -1,0 +1,26 @@
+{
+  "module": "billing",
+  "title": "FSP Billing",
+  "version": "0.1",
+  "versions": [
+    "0.1"
+  ],
+  "status": "draft",
+  "summary": "Фактические начисления оператора со ссылкой на правило прайса и акт за период с согласованием сторон.",
+  "depends": [
+    "core",
+    "pricing"
+  ],
+  "registries": [
+    "billing_model",
+    "charge_kinds",
+    "statement_states",
+    "rules"
+  ],
+  "rule_prefixes": [
+    "BILL"
+  ],
+  "schema": "schema.json",
+  "api": "../../api/billing.openapi.yaml",
+  "note": "Черновик. До версии 1.0 несовместимая правка поднимает MINOR."
+}

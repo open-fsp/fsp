@@ -33,7 +33,7 @@ export function GET() {
 ${mods
   .map(
     (m) =>
-      `- ${m.module} ${m.status === "planned" ? "(planned, реестров нет)" : m.version} — ${m.summary}${
+      `- ${m.module} ${m.status === "planned" ? "(planned, реестров нет)" : m.status === "draft" ? `${m.version} (draft, до 1.0 может меняться несовместимо)` : m.version} — ${m.summary}${
         m.depends.length ? ` Зависит от: ${m.depends.join(", ")}.` : ""
       }`,
   )
@@ -57,6 +57,12 @@ ${levels.map((l) => `- ${l["Уровень"]} ${l["Название"]}: ${l["Т�
 - Коды стандартных услуг неизменяемы после публикации (CAT-001).
 - Своя операция вне стандарта оформляется расширением x-<vendor>:<code> с указанием родительского
   модуля; расширение только добавляет поля и не переопределяет стандартные (PROFILE-007).
+- Отказ объясняется кодом из закрытого реестра ошибок обмена; собственное правило стороны —
+  единственным кодом PARTY_RULE_VIOLATION с текстом правила (ERR-001, ERR-004).
+- Слот сдачи выдаётся под конкретный черновик поставки и бронируется только подтверждением
+  (ORDER-001, ORDER-002); план заявителя и факт приёмки оператора хранятся раздельно (ORDER-005).
+- Начисление за услугу ссылается на правило прайса и несёт снимок расчёта, поэтому акт сверяется
+  с прайсом программой (BILL-001, BILL-002).
 
 ## Состав
 
@@ -86,6 +92,8 @@ ${mods.map((m) => `- https://openfsp.ru/modules/${m.module}/ — ${m.title}`).jo
 - https://openfsp.ru/1.0/<модуль>/<реестр>.csv — реестр как CSV
 - https://openfsp.ru/1.0/profile/fsp-profile.schema.json — схема манифеста стороны
 - https://openfsp.ru/1.0/quote/openapi.yaml — OpenAPI модуля Quote
+- https://openfsp.ru/1.0/order/openapi.yaml — OpenAPI модуля Order
+- https://openfsp.ru/1.0/billing/openapi.yaml — OpenAPI модуля Billing
 `;
 
   return new Response(text, {

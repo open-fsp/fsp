@@ -1,0 +1,310 @@
+openapi: 3.1.0
+info:
+  title: FSP Order API
+  version: 0.1.0
+  description: >
+    Поставка на склад оператора: черновик, слоты под этот черновик,
+    подтверждение с бронью слота, отмена, документы. API реализует оператор и
+    объявляет модуль order в своём манифесте /.well-known/fsp; вызывает его
+    заявитель или его агент.
+
+    Статус поставки меняется только по реестру supply_statuses (ORDER-003).
+    Переводы в arrived и completed делает оператор в своей системе, поэтому
+    методов для них здесь нет: заявитель видит их, опрашивая поставки по
+    updated_since. Отказы возвращаются кодами реестра error_codes FSP Core.
+
+servers:
+  - url: https://operator.example/fsp/v1
+    description: Пример адреса. Реальный адрес сторона объявляет в endpoints своего манифеста /.well-known/fsp
+
+paths:
+  /supplies:
+    post:
+      operationId: createSupply
+      summary: Создать черновик поставки
+      description: >
+        Поставка создаётся в статусе draft. Слот черновик не удерживает
+        (ORDER-002). Грузоместо вне лимитов приёмки склада отклоняется сразу
+        (ORDER-007).
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplyInput"
+      responses:
+        "201":
+          description: Черновик создан
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/order/schema.json#/$defs/supply"
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      operationId: listSupplies
+      summary: Список поставок заявителя
+      parameters:
+        - name: status
+          in: query
+          description: Один или несколько статусов через запятую
+          schema: { type: string }
+        - name: updated_since
+          in: query
+          description: Только поставки, менявшиеся с этого момента. Так заявитель узнаёт о переходах, которые делает оператор
+          schema: { type: string, format: date-time }
+        - name: cursor
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 300, default: 100 }
+      responses:
+        "200":
+          description: Страница списка
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [supplies]
+                properties:
+                  supplies:
+                    type: array
+                    items:
+                      $ref: "../modules/order/schema.json#/$defs/supply"
+                  next_cursor:
+                    type: string
+                    description: Отсутствует на последней странице
+        default:
+          $ref: "#/components/responses/Error"
+
+  /supplies/{supply_id}:
+    parameters:
+      - $ref: "#/components/parameters/SupplyId"
+    get:
+      operationId: getSupply
+      summary: Поставка целиком — план, слот, грузоместа и факт приёмки
+      responses:
+        "200":
+          description: Поставка
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/order/schema.json#/$defs/supply"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      operationId: updateSupply
+      summary: Изменить план поставки
+      description: >
+        Переданный список (items, packages) заменяет прежний целиком. В
+        черновике правка свободная; в подтверждённой поставке оператор вправе
+        потребовать новый слот и вернуть CONFLICT по полю slot_id (ORDER-006).
+        После приёмки на воротах план не меняется — STATUS_NOT_ALLOWED.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplyPatch"
+      responses:
+        "200":
+          description: Поставка после правки
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/order/schema.json#/$defs/supply"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /supplies/{supply_id}/slots:
+    parameters:
+      - $ref: "#/components/parameters/SupplyId"
+    get:
+      operationId: listSupplySlots
+      summary: Свободные слоты под эту поставку
+      description: >
+        Слоты считаются под состав и грузоместа конкретной поставки, поэтому
+        запрашиваются по её идентификатору, а не выводятся из расписания
+        приёмки склада (ORDER-001). Список — срез на момент запроса: слот
+        бронируется только подтверждением.
+      parameters:
+        - name: date_from
+          in: query
+          description: С какой даты искать; по умолчанию planned_date поставки
+          schema: { type: string, format: date }
+        - name: date_to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Свободные слоты
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [slots]
+                properties:
+                  slots:
+                    type: array
+                    items:
+                      $ref: "../modules/order/schema.json#/$defs/supply_slot"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /supplies/{supply_id}/confirm:
+    parameters:
+      - $ref: "#/components/parameters/SupplyId"
+    post:
+      operationId: confirmSupply
+      summary: Подтвердить поставку и забронировать слот
+      description: >
+        Переводит поставку из draft в confirmed. Если склад принимает только
+        по записи, slot_id обязателен. Занятый слот возвращает CONFLICT по
+        полю slot_id — слоты нужно запросить заново (ORDER-002).
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slot_id: { type: string }
+      responses:
+        "200":
+          description: Поставка подтверждена
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/order/schema.json#/$defs/supply"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /supplies/{supply_id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/SupplyId"
+    post:
+      operationId: cancelSupply
+      summary: Отменить поставку
+      description: >
+        Доступна заявителю, пока поставка не принята на воротах; позже
+        возвращается STATUS_NOT_ALLOWED (ORDER-004). Отмена освобождает слот.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 1 }
+      responses:
+        "200":
+          description: Поставка отменена
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/order/schema.json#/$defs/supply"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /supplies/{supply_id}/documents:
+    parameters:
+      - $ref: "#/components/parameters/SupplyId"
+    get:
+      operationId: listSupplyDocuments
+      summary: Документы поставки
+      description: >
+        Документ в статусе pending ещё формируется и ссылки не имеет. Ссылка
+        у available временная; свежая получается повторным запросом
+        (ORDER-009).
+      responses:
+        "200":
+          description: Документы поставки
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [documents]
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: "../modules/order/schema.json#/$defs/supply_document"
+        default:
+          $ref: "#/components/responses/Error"
+
+components:
+  parameters:
+    SupplyId:
+      name: supply_id
+      in: path
+      required: true
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >
+        Ключ идемпотентности (ERR-005, ORDER-008). Повтор с тем же ключом и
+        телом возвращает результат первого запроса.
+      schema: { type: string }
+
+  responses:
+    Error:
+      description: >
+        Запрос отклонён целиком. HTTP-статус соответствует коду из реестра
+        error_codes FSP Core (ERR-002).
+      content:
+        application/json:
+          schema:
+            $ref: "../modules/core/schema.json#/$defs/error_response"
+
+  schemas:
+    SupplyInput:
+      type: object
+      description: План поставки — поля, которые заполняет заявитель (колонка «Заполняет» реестра order_model). Поля оператора в запросе игнорируются.
+      required: [location_id, planned_date, items]
+      properties:
+        location_id: { type: string }
+        client_ref: { type: string }
+        external_ref: { type: string }
+        planned_date: { type: string, format: date }
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "../modules/order/schema.json#/$defs/supply_item"
+        packages:
+          type: array
+          items:
+            $ref: "../modules/order/schema.json#/$defs/supply_package"
+        pass:
+          $ref: "../modules/order/schema.json#/$defs/supply_pass"
+        quote_ref: { type: string }
+        comment: { type: string }
+    SupplyPatch:
+      type: object
+      description: Любое подмножество плана. Переданный список заменяет прежний целиком.
+      minProperties: 1
+      properties:
+        external_ref: { type: string }
+        planned_date: { type: string, format: date }
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "../modules/order/schema.json#/$defs/supply_item"
+        packages:
+          type: array
+          items:
+            $ref: "../modules/order/schema.json#/$defs/supply_package"
+        pass:
+          $ref: "../modules/order/schema.json#/$defs/supply_pass"
+        comment: { type: string }

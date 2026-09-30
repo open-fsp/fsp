@@ -131,7 +131,19 @@ components:
                 $ref: "../modules/quote/schema.json#/$defs/unmet_code"
     Error:
       type: object
+      description: >
+        Отказ запросу целиком (ERR-002). Сторона, объявившая core 2.1 и выше,
+        берёт code из закрытого реестра error_codes FSP Core (ERR-001).
       required: [code, message]
       properties:
         code: { type: string }
         message: { type: string }
+        field:
+          type: string
+          description: Путь к полю от корня тела запроса (ERR-003)
+        details: { type: object }
+        errors:
+          type: array
+          description: Все причины отказа, если их несколько
+          items:
+            $ref: "../modules/core/schema.json#/$defs/error"

@@ -14,3 +14,4 @@ operator_location,city,string,да,Город склада,Москва
 operator_location,region,string,да,Регион,Московская область
 operator_location,address,string,нет,Адрес склада,"г. Москва, ул. ..."
 operator_location,self_pickup,boolean,нет,Возможен самовывоз клиентом со склада,true
+operator_location,timezone,string,нет,Часовой пояс склада по базе IANA. В нём заданы расписание приёмки и окна отправки: без него «с 9 до 18» не сопоставимо между складами,Europe/Moscow

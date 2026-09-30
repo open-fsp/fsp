@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openfsp.ru/1.0/order/schema.json",
+  "title": "FSP Order 1.0",
+  "description": "Поставка на склад как объект обмена между заявителем и оператором. План заполняет заявитель, факт приёмки — оператор (ORDER-005). Отгрузка и возврат этой версией не описаны.",
+  "$defs": {
+    "supply_status": {
+      "type": "string",
+      "enum": ["draft", "confirmed", "arrived", "completed", "cancelled"],
+      "description": "Код из закрытого реестра supply_statuses; переходы только по реестру (ORDER-003)"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": ["waybill", "acceptance_act", "discrepancy_act"],
+      "description": "Код из реестра document_types"
+    },
+    "supply_item": {
+      "type": "object",
+      "description": "Строка состава. Расхождение — это разница planned_qty и фактических чисел, а не отдельный статус (ORDER-005).",
+      "required": ["sku", "planned_qty"],
+      "additionalProperties": false,
+      "properties": {
+        "sku": { "type": "string", "description": "Артикул заявителя" },
+        "barcode": { "type": "string" },
+        "name": { "type": "string" },
+        "planned_qty": { "type": "number", "minimum": 0, "description": "Ноль у строки, которой в плане не было" },
+        "accepted_qty": { "type": "number", "minimum": 0, "description": "Принято годным; заполняет оператор" },
+        "defect_qty": { "type": "number", "minimum": 0, "description": "Принято с браком; заполняет оператор" },
+        "discrepancy_note": { "type": "string" }
+      }
+    },
+    "package_item": {
+      "type": "object",
+      "required": ["sku", "qty"],
+      "additionalProperties": false,
+      "properties": {
+        "sku": { "type": "string" },
+        "qty": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "supply_package": {
+      "type": "object",
+      "description": "Грузоместо поставки. Вес и габариты сверяются с лимитами приёмки склада при оформлении, а не на воротах (ORDER-007).",
+      "required": ["package_number", "package_type"],
+      "additionalProperties": false,
+      "properties": {
+        "package_id": { "type": "string", "description": "Выдаёт оператор при сохранении" },
+        "package_number": { "type": "integer", "minimum": 1 },
+        "package_type": { "$ref": "../core/schema.json#/$defs/package_type" },
+        "weight_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "length_cm": { "type": "number", "exclusiveMinimum": 0 },
+        "width_cm": { "type": "number", "exclusiveMinimum": 0 },
+        "height_cm": { "type": "number", "exclusiveMinimum": 0 },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/package_item" } },
+        "accepted": { "type": "boolean", "description": "Грузоместо принято на воротах; заполняет оператор" }
+      }
+    },
+    "supply_slot": {
+      "type": "object",
+      "description": "Интервал сдачи, выданный под конкретную поставку (ORDER-001). Бронируется только подтверждением (ORDER-002).",
+      "required": ["slot_id", "starts_at", "ends_at"],
+      "additionalProperties": false,
+      "properties": {
+        "slot_id": { "type": "string" },
+        "starts_at": { "type": "string", "format": "date-time" },
+        "ends_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "supply_pass": {
+      "type": "object",
+      "description": "Данные для пропуска на территорию. Передаются, только если склад его требует, и используются только для допуска (ORDER-010).",
+      "required": ["driver_name", "vehicle_plate"],
+      "additionalProperties": false,
+      "properties": {
+        "driver_name": { "type": "string" },
+        "driver_phone": { "type": "string" },
+        "vehicle_plate": { "type": "string" },
+        "vehicle_model": { "type": "string" }
+      }
+    },
+    "supply": {
+      "type": "object",
+      "description": "Поставка на склад оператора.",
+      "required": ["supply_id", "location_id", "status", "planned_date", "items", "created_at", "updated_at"],
+      "additionalProperties": false,
+      "properties": {
+        "supply_id": { "type": "string" },
+        "location_id": { "type": "string", "description": "operator_location в FSP Core" },
+        "client_ref": { "type": "string", "description": "Идентификатор заявителя в системе оператора" },
+        "external_ref": { "type": "string", "description": "Номер поставки в системе заявителя" },
+        "status": { "$ref": "#/$defs/supply_status" },
+        "planned_date": { "type": "string", "format": "date" },
+        "slot": { "$ref": "#/$defs/supply_slot" },
+        "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/supply_item" } },
+        "packages": { "type": "array", "items": { "$ref": "#/$defs/supply_package" } },
+        "pass": { "$ref": "#/$defs/supply_pass" },
+        "quote_ref": { "type": "string", "description": "Принятая смета FSP Quote как основание поставки" },
+        "comment": { "type": "string" },
+        "cancelled_by": { "type": "string", "enum": ["requester", "operator"] },
+        "cancel_reason": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time", "description": "По этому полю заявитель опрашивает изменения" },
+        "status_changed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "supply_document": {
+      "type": "object",
+      "description": "Документ поставки. У pending ссылки нет; у available она временная (ORDER-009).",
+      "required": ["document_id", "type", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "document_id": { "type": "string" },
+        "type": { "$ref": "#/$defs/document_type" },
+        "status": { "type": "string", "enum": ["pending", "available"] },
+        "url": { "type": "string", "format": "uri" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "dependentRequired": { "url": ["expires_at"] }
+    }
+  }
+}

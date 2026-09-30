@@ -6,11 +6,12 @@ const mods = allManifests();
 const s = summary();
 const levels = rowsOf("pricing", "conformance_levels");
 const about = {
-  core: "Услуги, единицы начисления, категории товара, габаритные профили, оператор и склад",
+  core: "Услуги, единицы начисления, категории товара, габаритные профили, оператор и склад, коды ошибок обмена",
   pricing: "Тарифный план, предложения, правила цены, условия, модификаторы, ступени",
-  capacity: "Витрина склада, свободная площадь и пропускная способность, направления",
+  capacity: "Витрина склада, свободная площадь и пропускная способность, условия приёмки, направления",
   quote: "Запрос сметы операциями и объёмом, ответ со сметой и кодами непокрытия",
-  order: "Поставка на склад, отгрузка, возврат",
+  order: "Поставка на склад: слот сдачи, грузоместа, план и факт приёмки, документы",
+  billing: "Фактические начисления со ссылкой на правило прайса, акт за период и его согласование",
   tracking: "События по заказу и остатки у оператора",
 };
 ---
@@ -38,7 +39,7 @@ const about = {
         <h3>FSP {m.title.replace("FSP ", "")}</h3>
         <p>{about[m.module]}</p>
         <div class="meta">
-          <span class={`badge ${m.status}`}>{m.status === "planned" ? "planned" : m.version}</span>
+          <span class={`badge ${m.status}`}>{m.status === "planned" ? "planned" : m.status === "draft" ? `draft ${m.version}` : m.version}</span>
           {m.registries.length > 0 && <span class="badge">{m.registries.length} {plural(m.registries.length, "реестр", "реестра", "реестров")}</span>}
         </div>
       </a>

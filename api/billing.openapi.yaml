@@ -1,0 +1,191 @@
+openapi: 3.1.0
+info:
+  title: FSP Billing API
+  version: 0.1.0
+  description: >
+    Акты оператора и их начисления: чтение, согласование и оспаривание. API
+    реализует оператор и объявляет модуль billing в своём манифесте
+    /.well-known/fsp; вызывает его заявитель или его агент.
+
+    Каждое начисление за услугу несёт ссылку на правило прайса и снимок
+    расчёта (BILL-001, BILL-002), поэтому акт сверяется с прайсом программой.
+    Состояние акта меняется только по реестру statement_states. Отказы
+    возвращаются кодами реестра error_codes FSP Core.
+
+servers:
+  - url: https://operator.example/fsp/v1
+    description: Пример адреса. Реальный адрес сторона объявляет в endpoints своего манифеста /.well-known/fsp
+
+paths:
+  /statements:
+    get:
+      operationId: listStatements
+      summary: Акты заявителя
+      parameters:
+        - name: state
+          in: query
+          description: Одно или несколько состояний через запятую
+          schema: { type: string }
+        - name: period_from
+          in: query
+          description: Акты, чей период начинается не раньше этой даты
+          schema: { type: string, format: date }
+        - name: cursor
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 300, default: 100 }
+      responses:
+        "200":
+          description: Страница списка
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [statements]
+                properties:
+                  statements:
+                    type: array
+                    items:
+                      $ref: "../modules/billing/schema.json#/$defs/statement"
+                  next_cursor:
+                    type: string
+                    description: Отсутствует на последней странице
+        default:
+          $ref: "#/components/responses/Error"
+
+  /statements/{statement_id}:
+    parameters:
+      - $ref: "#/components/parameters/StatementId"
+    get:
+      operationId: getStatement
+      summary: Акт — период, состав, состояние, суммы, история
+      responses:
+        "200":
+          description: Акт
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/billing/schema.json#/$defs/statement"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /statements/{statement_id}/charges:
+    parameters:
+      - $ref: "#/components/parameters/StatementId"
+    get:
+      operationId: listCharges
+      summary: Начисления акта
+      description: >
+        Пока состав акта открыт (composition=open), ответ — текущий срез и
+        может измениться. У закрытого акта состав зафиксирован (BILL-008).
+      parameters:
+        - name: kind
+          in: query
+          description: Один или несколько видов начислений через запятую
+          schema: { type: string }
+        - name: cursor
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 300, default: 100 }
+      responses:
+        "200":
+          description: Страница начислений
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [charges]
+                properties:
+                  charges:
+                    type: array
+                    items:
+                      $ref: "../modules/billing/schema.json#/$defs/charge"
+                  next_cursor:
+                    type: string
+                    description: Отсутствует на последней странице
+        default:
+          $ref: "#/components/responses/Error"
+
+  /statements/{statement_id}/approve:
+    parameters:
+      - $ref: "#/components/parameters/StatementId"
+    post:
+      operationId: approveStatement
+      summary: Согласовать акт
+      description: >
+        Доступно только для акта на проверке; иначе STATUS_NOT_ALLOWED.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Акт согласован
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/billing/schema.json#/$defs/statement"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /statements/{statement_id}/dispute:
+    parameters:
+      - $ref: "#/components/parameters/StatementId"
+    post:
+      operationId: disputeStatement
+      summary: Оспорить акт
+      description: >
+        Доступно только для акта на проверке. Комментарий обязателен; если
+        спор о конкретных строках, они перечисляются в charge_ids (BILL-010).
+        Неизвестный charge_id возвращает UNKNOWN_REFERENCE с указанием поля.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [comment]
+              properties:
+                comment: { type: string, minLength: 1 }
+                charge_ids:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200":
+          description: Акт оспорен
+          content:
+            application/json:
+              schema:
+                $ref: "../modules/billing/schema.json#/$defs/statement"
+        default:
+          $ref: "#/components/responses/Error"
+
+components:
+  parameters:
+    StatementId:
+      name: statement_id
+      in: path
+      required: true
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >
+        Ключ идемпотентности (ERR-005). Повтор с тем же ключом и телом
+        возвращает результат первого запроса.
+      schema: { type: string }
+
+  responses:
+    Error:
+      description: >
+        Запрос отклонён целиком. HTTP-статус соответствует коду из реестра
+        error_codes FSP Core (ERR-002).
+      content:
+        application/json:
+          schema:
+            $ref: "../modules/core/schema.json#/$defs/error_response"

@@ -7,13 +7,13 @@
     "contact_channel": "https://birzha.example"
   },
   "modules": {
-    "core": { "versions": ["2.0"] },
+    "core": { "versions": ["2.1"] },
     "pricing": { "versions": ["1.3"], "level": "L3", "read_only": true },
-    "capacity": { "versions": ["2.0"], "read_only": true },
-    "quote": { "versions": ["1.4"] }
+    "capacity": { "versions": ["2.1"], "read_only": true },
+    "quote": { "versions": ["1.5"] }
   },
   "endpoints": {
     "quote": "https://api.birzha.example/fsp/v1/quote"
   },
-  "updated_at": "2026-07-25T10:00:00+03:00"
+  "updated_at": "2026-09-30T10:00:00+03:00"
 }
