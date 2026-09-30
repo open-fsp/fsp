@@ -131,7 +131,7 @@
       "additionalProperties": false,
       "properties": {
         "paid_at": { "type": "string", "format": "date-time" },
-        "amount": { "type": "number" },
+        "amount": { "type": "number", "exclusiveMinimum": 0, "description": "Сумма поступления; направление платежа задаёт знак итога акта" },
         "reference": { "type": "string", "description": "Номер платёжного документа" }
       }
     },

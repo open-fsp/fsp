@@ -7,15 +7,15 @@ supply,client_ref,string,нет,requester,"Идентификатор заяви
 supply,external_ref,string,нет,requester,Номер поставки в системе заявителя,PO-1187
 supply,status,enum,да,operator,Код из реестра «Статусы поставки»,draft
 supply,planned_date,date,да,requester,Желаемая дата сдачи на склад,2026-10-12
-supply,slot,object,нет,operator,"Забронированный слот сдачи. Появляется с подтверждением, если склад принимает только по записи (intake_terms.slot_required)","{slot_1012_10, 2026-10-12T10:00:00+03:00, 2026-10-12T11:00:00+03:00}"
+supply,slot,object,по правилу,operator,"Забронированный слот сдачи. Обязателен у подтверждённой поставки, если склад принимает только по записи (ORDER-002); у черновика его нет","{slot_1012_10, 2026-10-12T10:00:00+03:00, 2026-10-12T11:00:00+03:00}"
 supply,items,list<supply_item>,да,requester,Состав поставки,"{SKU-001, 300}; {SKU-002, 120}"
-supply,packages,list<supply_package>,нет,requester,Грузоместа: короба и паллеты с раскладкой состава,"{1, pallet}; {2, box}"
+supply,packages,list<supply_package>,по правилу,requester,"Грузоместа: короба и паллеты с раскладкой состава. Обязательны к подтверждению, если склад объявил лимиты приёмки (ORDER-007)","{1, pallet}; {2, box}"
 supply,pass,object,нет,requester,"Данные для пропуска на территорию; передаются, только если склад его требует (ORDER-010)","{Иванов И. И., А123ВС777}"
 supply,comment,string,нет,requester,Комментарий заявителя,"Хрупкое, разгрузка вручную"
 supply,cancelled_by,enum,условно,operator,requester / operator — кто отменил; обязателен при status=cancelled,requester
 supply,cancel_reason,string,условно,operator,Причина отмены; обязательна при status=cancelled,Перенос на другую дату
 supply,created_at,datetime,да,operator,Когда создан черновик,2026-10-05T12:00:00+03:00
-supply,updated_at,datetime,да,operator,Когда поставка менялась последний раз; по этому полю заявитель опрашивает изменения,2026-10-12T10:40:00+03:00
+supply,updated_at,datetime,да,operator,Когда последнее изменение поставки стало видно в API; по этому полю заявитель опрашивает изменения,2026-10-12T10:40:00+03:00
 supply,status_changed_at,datetime,нет,operator,Когда поставка перешла в текущий статус,2026-10-12T10:40:00+03:00
 supply_item,sku,string,да,requester,Артикул заявителя,SKU-001
 supply_item,barcode,string,нет,requester,Штрихкод единицы товара,4601234567890
@@ -27,10 +27,10 @@ supply_item,discrepancy_note,string,нет,operator,Пояснение опер�
 supply_package,package_id,id,нет,operator,Идентификатор грузоместа; выдаётся при сохранении,pkg_0142_1
 supply_package,package_number,integer,да,requester,Порядковый номер грузоместа в поставке,1
 supply_package,package_type,enum,да,requester,box / pallet / place,pallet
-supply_package,weight_kg,decimal,нет,requester,"Вес грузоместа. Обязателен к подтверждению, если склад объявил предел веса для этого вида грузоместа (ORDER-007)",320
-supply_package,length_cm,decimal,нет,requester,"Длина грузоместа; сверяется с лимитами приёмки так же, как вес",120
-supply_package,width_cm,decimal,нет,requester,"Ширина грузоместа; сверяется с лимитами приёмки так же, как вес",80
-supply_package,height_cm,decimal,нет,requester,"Высота грузоместа; сверяется с лимитами приёмки так же, как вес",160
+supply_package,weight_kg,decimal,по правилу,requester,"Вес грузоместа. Обязателен, если склад объявил предел веса для этого вида грузоместа (ORDER-007)",320
+supply_package,length_cm,decimal,по правилу,requester,"Длина грузоместа. Обязательна, если склад объявил по ней предел для этого вида грузоместа (ORDER-007)",120
+supply_package,width_cm,decimal,по правилу,requester,"Ширина грузоместа. Обязательна, если склад объявил по ней предел для этого вида грузоместа (ORDER-007)",80
+supply_package,height_cm,decimal,по правилу,requester,"Высота грузоместа. Обязательна, если склад объявил по ней предел для этого вида грузоместа (ORDER-007)",160
 supply_package,items,list<package_item>,нет,requester,Что лежит в грузоместе,"{SKU-001, 300}"
 supply_package,accepted,boolean,нет,operator,Грузоместо принято на воротах,true
 package_item,sku,string,да,requester,Артикул из состава поставки,SKU-001

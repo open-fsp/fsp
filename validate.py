@@ -66,6 +66,7 @@ VERSION_RE = re.compile(r'^[0-9]+\.[0-9]+$')
 EXT_RE = re.compile(r'^x-[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*$')
 ERROR_CODE_RE = re.compile(r'^[A-Z][A-Z_]*[A-Z]$')
 ERROR_CLASSES = ('request', 'field', 'state', 'rule')
+RULE_ID_RE = re.compile(r'\b[A-Z]+-[0-9]{3}\b')
 ACTORS = ('requester', 'operator', 'system')
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -180,24 +181,68 @@ def resolve_ref(root, module, ref):
 
 
 def conditional_fields(definition):
-    """Поля, обязательность которых схема задаёт условием: if/then/else, anyOf, dependentRequired."""
+    """Поля, которые схема делает обязательными по условию: then/else, ветви anyOf/oneOf,
+    dependentRequired. Упоминание в самом условии if или под not обязательностью не считается."""
     out = set()
 
-    def required_in(node):
-        if isinstance(node, dict):
-            out.update(node.get('required', []))
-            for v in node.values():
-                required_in(v)
-        elif isinstance(node, list):
-            for v in node:
-                required_in(v)
+    def collect(node):
+        if not isinstance(node, dict):
+            return
+        out.update(node.get('required', []))
+        for key in ('then', 'else'):
+            collect(node.get(key))
+        for key in ('allOf', 'anyOf', 'oneOf'):
+            for branch in node.get(key, []):
+                collect(branch)
 
-    for key in ('if', 'then', 'else', 'allOf', 'anyOf', 'oneOf', 'not'):
-        required_in(definition.get(key))
-    for field, deps in definition.get('dependentRequired', {}).items():
-        out.add(field)
+    for key in ('then', 'else'):
+        collect(definition.get(key))
+    for key in ('allOf', 'anyOf', 'oneOf'):
+        for branch in definition.get(key, []):
+            collect(branch)
+    for deps in definition.get('dependentRequired', {}).values():
         out.update(deps)
     return out
+
+
+def condition_errors(root, module, name, definition):
+    """Значения в условиях if обязаны входить в перечисление того поля, которое они проверяют:
+    иначе после переименования кода условие молча перестаёт срабатывать."""
+    errs = []
+
+    def values_of(constraint):
+        node = resolve_ref(root, module, constraint['$ref']) if '$ref' in constraint else constraint
+        vals = list(node.get('enum', []))
+        if 'const' in node:
+            vals.append(node['const'])
+        if isinstance(node.get('not'), dict):
+            vals += values_of(node['not'])
+        return vals
+
+    def check_condition(cond, props, path):
+        for field, constraint in (cond.get('properties') or {}).items():
+            prop = props.get(field, {})
+            target = resolve_ref(root, module, prop['$ref']) if '$ref' in prop else prop
+            allowed = target.get('enum')
+            if allowed is not None:
+                errs.extend('%s.%s: условие по %s%s проверяет %r, которого нет в перечислении поля'
+                            % (module, name, path, field, v) for v in values_of(constraint) if v not in allowed)
+            if isinstance(constraint.get('properties'), dict):
+                check_condition(constraint, target.get('properties', {}), path + field + '.')
+
+    def walk(node, props):
+        if not isinstance(node, dict):
+            return
+        if isinstance(node.get('if'), dict):
+            check_condition(node['if'], props, '')
+        for key in ('then', 'else'):
+            walk(node.get(key), props)
+        for key in ('allOf', 'anyOf', 'oneOf'):
+            for branch in node.get(key, []):
+                walk(branch, props)
+
+    walk(definition, definition.get('properties', {}))
+    return errs
 
 
 def load_defs(root, module):
@@ -540,6 +585,9 @@ def main():
     enum_matches('order', 'document_type', [d['Код'] for d in document_types], 'document_types')
     enum_matches('billing', 'statement_state', [s['Код'] for s in statement_states], 'statement_states')
     enum_matches('billing', 'charge_kind', [k['Код'] for k in charge_kinds], 'charge_kinds')
+    for m in MODULES:
+        for name, d in sorted(load_defs(R, m).items()):
+            errs += condition_errors(R, m, name, d)
     check('Перечисления схем расходятся с реестрами', errs)
 
     # ---------- ссылки между схемами ----------
@@ -691,13 +739,16 @@ def main():
             entity, field, need = r['Сущность'], r['Поле'], r['Обязательно'].strip()
             fields.setdefault(entity, set()).add(field)
             types[(entity, field)] = r['Тип'].strip()
-            if need not in ('да', 'нет', 'условно'):
+            if need not in ('да', 'нет', 'условно', 'по правилу'):
                 errs.append('%s: %s.%s — «Обязательно» = %r' % (m, entity, field, need))
+            # условие зависит от другого объекта и схемой не выражается: обязано назвать правило
+            if need == 'по правилу' and not any(rid in all_rule_ids for rid in RULE_ID_RE.findall(r['Назначение'])):
+                errs.append('%s: %s.%s обязательно по правилу, но существующее правило не названо' % (m, entity, field))
             if need == 'да':
                 required.setdefault(entity, set()).add(field)
             if need == 'условно':
                 conditional.setdefault(entity, set()).add(field)
-            if r['Заполняет'].strip() not in ACTORS:
+            if not split_list(r['Заполняет']) or any(w not in ACTORS for w in split_list(r['Заполняет'])):
                 errs.append('%s: %s.%s — «Заполняет» = %r' % (m, entity, field, r['Заполняет']))
         for entity in sorted(fields):
             d = defs.get(entity)

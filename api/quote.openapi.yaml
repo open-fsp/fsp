@@ -157,4 +157,9 @@ components:
           type: array
           description: Все причины отказа, если их несколько
           items:
-            $ref: "../modules/core/schema.json#/$defs/error"
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: string }

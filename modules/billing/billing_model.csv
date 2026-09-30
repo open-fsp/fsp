@@ -43,13 +43,13 @@ statement,amount_net,decimal,да,operator,Сумма начислений бе�
 statement,vat_amount,decimal,да,operator,Сумма НДС; 0 допустим,49600
 statement,amount_total,decimal,да,operator,Итог к оплате с НДС,297600
 statement,history,list<statement_event>,нет,operator,История смены состояний,"{draft → in_review, operator}"
-statement,payments,list<statement_payment>,нет,operator,"Платежи по акту, подтверждённые получателем","{2026-11-10, 297600}"
+statement,payments,list<statement_payment>,нет,operator; requester,"Платежи по акту. Платёж вносит его получатель: оператор при положительном итоге, заявитель при отрицательном (BILL-012)","{2026-11-10, 297600}"
 statement_event,at,datetime,да,operator,Когда состояние сменилось,2026-11-05T16:30:00+03:00
 statement_event,from_state,enum,нет,operator,Прежнее состояние; пусто у первой записи,in_review
 statement_event,to_state,enum,да,operator,Новое состояние,disputed
 statement_event,actor,enum,да,operator,requester / operator / system — кто сменил,requester
 statement_event,comment,string,условно,requester,Комментарий; обязателен при оспаривании (BILL-010),"Приёмка 12.10 посчитана по 300 единицам, принято 297"
 statement_event,charge_ids,list<id>,нет,requester,"Оспариваемые начисления, если спор о конкретных строках",chg_2026_10_00871
-statement_payment,paid_at,datetime,да,operator,Когда платёж поступил получателю,2026-11-10T12:00:00+03:00
-statement_payment,amount,decimal,да,operator,Сумма платежа,297600
-statement_payment,reference,string,нет,operator,Номер платёжного документа,п/п 481
+statement_payment,paid_at,datetime,да,operator; requester,Когда платёж поступил получателю,2026-11-10T12:00:00+03:00
+statement_payment,amount,decimal,да,operator; requester,"Сумма поступления; всегда положительная, направление платежа задаёт знак итога акта",297600
+statement_payment,reference,string,нет,operator; requester,Номер платёжного документа,п/п 481

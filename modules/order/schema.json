@@ -101,8 +101,17 @@
         "updated_at": { "type": "string", "format": "date-time", "description": "По этому полю заявитель опрашивает изменения" },
         "status_changed_at": { "type": "string", "format": "date-time" }
       },
-      "if": { "properties": { "status": { "const": "cancelled" } } },
-      "then": { "required": ["cancelled_by", "cancel_reason"] }
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "cancelled" } } },
+          "then": { "required": ["cancelled_by", "cancel_reason"] },
+          "else": { "not": { "anyOf": [{ "required": ["cancelled_by"] }, { "required": ["cancel_reason"] }] } }
+        },
+        {
+          "if": { "properties": { "status": { "const": "draft" } } },
+          "then": { "not": { "required": ["slot"] } }
+        }
+      ]
     },
     "supply_document": {
       "type": "object",
