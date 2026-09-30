@@ -55,6 +55,11 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        default:
+          description: Иной отказ запросу целиком — авторизация, лимит запросов, сбой
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
   /quote/free-form:
     post:
@@ -94,6 +99,11 @@ paths:
                     items: { type: string }
                   result:
                     $ref: "#/components/schemas/QuoteResult"
+        default:
+          description: Отказ запросу целиком
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
 components:
   schemas:
@@ -131,7 +141,25 @@ components:
                 $ref: "../modules/quote/schema.json#/$defs/unmet_code"
     Error:
       type: object
+      description: >
+        Отказ запросу целиком. Код рекомендуется брать из реестра error_codes
+        FSP Core; для этого API, опубликованного раньше реестра, это не
+        обязательно (ERR-006).
       required: [code, message]
       properties:
         code: { type: string }
         message: { type: string }
+        field:
+          type: string
+          description: Путь к полю от корня тела запроса (ERR-003)
+        details: { type: object }
+        errors:
+          type: array
+          description: Все причины отказа, если их несколько
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: string }

@@ -1,5 +1,5 @@
 Мощности и направления — FSP Capacity
-"Что оператор готов взять (listing), сколько у него свободно (storage_capacity, throughput_capacity) и куда он возит (routes, route_schedules). Волатильные данные: заполняет и обновляет сам оператор."
+"Что оператор готов взять (listing), сколько у него свободно (storage_capacity, throughput_capacity), когда и что принимает на воротах (intake_terms, intake_schedules, intake_limits) и куда он возит (routes, route_schedules). Волатильные данные: заполняет и обновляет сам оператор."
 Сущность,Поле,Тип,Обязательно,Назначение,Пример
 listing,listing_id,id,да,Предложение склада в маркетплейсе,listing_sklad_msk
 listing,location_id,id,да,Склад,loc_sklad_msk
@@ -43,3 +43,23 @@ route_schedules,weekday,enum,да,monday … sunday,monday
 route_schedules,cutoff_time,time,нет,Время окончания приёма заявок на это окно,18:00
 route_schedules,departure_time,time,нет,Плановое время отправления,10:00
 route_schedules,active,boolean,да,Окно доступно,true
+intake_terms,location_id,id,да,"Склад, к которому относятся условия приёмки",loc_sklad_msk
+intake_terms,slot_required,boolean,да,Принимает ли склад только по записи на слот,true
+intake_terms,pass_required,boolean,нет,Нужен ли пропуск на территорию: данные водителя и машины,true
+intake_terms,package_types,list<enum>,нет,Какие грузоместа склад принимает: box / pallet / place,box; pallet
+intake_terms,instructions,string,нет,"Как подготовить поставку: маркировка мест, документы, въезд","Паллеты обмотать стретчем, на каждом месте этикетка с номером поставки"
+intake_terms,updated_at,datetime,нет,Когда оператор обновил условия,2026-09-30
+intake_schedules,schedule_id,id,да,Окно приёмки склада,intake_msk_mon
+intake_schedules,location_id,id,да,Склад,loc_sklad_msk
+intake_schedules,weekday,enum,да,monday … sunday,monday
+intake_schedules,open_time,time,да,"Начало приёмки, местное время склада",09:00
+intake_schedules,close_time,time,да,"Конец приёмки, местное время склада",18:00
+intake_schedules,active,boolean,да,Окно действует,true
+intake_limits,limit_id,id,да,Строка лимитов приёмки,limit_msk_pallet
+intake_limits,location_id,id,да,Склад,loc_sklad_msk
+intake_limits,package_type,enum,да,"Вид грузоместа, к которому относится лимит: box / pallet / place",pallet
+intake_limits,max_weight_kg,decimal,условно,Предельный вес одного грузоместа. Заполнить нужно хотя бы один предел,800
+intake_limits,max_length_cm,decimal,условно,Предельная длина одного грузоместа,120
+intake_limits,max_width_cm,decimal,условно,Предельная ширина одного грузоместа,80
+intake_limits,max_height_cm,decimal,условно,Предельная высота одного грузоместа,180
+intake_limits,max_sum_sides_cm,decimal,условно,Предельная сумма трёх сторон одного грузоместа,250

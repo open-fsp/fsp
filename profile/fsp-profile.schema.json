@@ -31,7 +31,7 @@
       "type": "object",
       "description": "Ключ — код модуля FSP. Объявлять модуль, чьи зависимости не объявлены, запрещено.",
       "minProperties": 1,
-      "propertyNames": { "enum": ["core", "pricing", "capacity", "quote", "order", "tracking"] },
+      "propertyNames": { "enum": ["core", "pricing", "capacity", "quote", "order", "billing", "tracking"] },
       "additionalProperties": {
         "type": "object",
         "required": ["versions"],
@@ -66,7 +66,7 @@
         "properties": {
           "module": {
             "type": "string",
-            "enum": ["core", "pricing", "capacity", "quote", "order", "tracking"],
+            "enum": ["core", "pricing", "capacity", "quote", "order", "billing", "tracking"],
             "description": "Родительский модуль, который расширение дополняет"
           },
           "versions": {
@@ -85,7 +85,7 @@
     },
     "endpoints": {
       "type": "object",
-      "description": "Точки входа стороны по модулям; ключ — код модуля",
+      "description": "Адреса стороны по модулям; ключ — код модуля. Для модуля с OpenAPI это базовый адрес, к которому добавляются пути из спецификации; для модуля без OpenAPI — адрес, по которому сторона отдаёт его данные",
       "additionalProperties": { "type": "string", "format": "uri" }
     },
     "updated_at": { "type": "string", "format": "date-time" }

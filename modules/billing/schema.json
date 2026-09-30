@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openfsp.ru/1.0/billing/schema.json",
+  "title": "FSP Billing",
+  "description": "Фактические начисления оператора и акт за период. Начисление ссылается на правило прайса, по которому посчитано (BILL-001), акт согласуется сторонами по реестру состояний.",
+  "$defs": {
+    "charge_kind": {
+      "type": "string",
+      "enum": ["service", "material", "penalty", "compensation", "correction"],
+      "description": "Код из закрытого реестра charge_kinds. Направление задаёт знак суммы, а не вид (BILL-006)"
+    },
+    "statement_state": {
+      "type": "string",
+      "enum": ["draft", "in_review", "approved", "disputed", "settled"],
+      "description": "Код из закрытого реестра statement_states"
+    },
+    "calculation_part": {
+      "type": "object",
+      "description": "Часть количества, посчитанная по одному диапазону ступенчатого правила.",
+      "required": ["price_tier_id", "quantity", "rate", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "price_tier_id": { "type": "string", "description": "Диапазон из price_tiers в FSP Pricing" },
+        "quantity": { "type": "number", "minimum": 0 },
+        "rate": { "type": "number" },
+        "amount": { "type": "number" }
+      }
+    },
+    "calculation_adjustment": {
+      "type": "object",
+      "description": "Применённый модификатор отдельной строкой (PRICE-005).",
+      "required": ["price_adjustment_id", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "price_adjustment_id": { "type": "string", "description": "Модификатор из price_adjustments в FSP Pricing" },
+        "amount": { "type": "number", "description": "На сколько модификатор изменил сумму" }
+      }
+    },
+    "charge_calculation": {
+      "type": "object",
+      "description": "Снимок расчёта: что посчитано на самом деле и по какому правилу прайса (BILL-001, BILL-002).",
+      "required": ["rate_card_id", "calculation_method"],
+      "additionalProperties": false,
+      "properties": {
+        "rate_card_id": { "type": "string", "description": "Версия прайса; версия, на которую ссылается начисление, не изменяется (BILL-004)" },
+        "price_rule_id": { "type": "string", "description": "Пусто только при calculation_method=manual_quote" },
+        "calculation_method": { "$ref": "../pricing/schema.json#/$defs/calculation_method" },
+        "billing_metric": { "$ref": "../core/schema.json#/$defs/billing_metric" },
+        "quantity": { "type": "number", "minimum": 0, "description": "Тарифицируемое количество после округления (PRICE-014)" },
+        "rate": { "type": "number", "description": "Применённая ставка" },
+        "parts": { "type": "array", "items": { "$ref": "#/$defs/calculation_part" } },
+        "adjustments": { "type": "array", "items": { "$ref": "#/$defs/calculation_adjustment" } }
+      },
+      "dependentRequired": { "billing_metric": ["quantity"] },
+      "allOf": [
+        {
+          "if": { "properties": { "calculation_method": { "const": "manual_quote" } } },
+          "else": { "required": ["price_rule_id"] }
+        },
+        {
+          "if": { "properties": { "calculation_method": { "enum": ["per_unit", "per_metric", "tiered"] } } },
+          "then": { "required": ["billing_metric", "quantity"] }
+        },
+        {
+          "if": { "properties": { "calculation_method": { "enum": ["flat", "per_unit", "per_metric"] } } },
+          "then": { "required": ["rate"] }
+        }
+      ]
+    },
+    "charge": {
+      "type": "object",
+      "description": "Фактическое начисление. Положительная сумма — к оплате заявителем, отрицательная — в его пользу (BILL-006).",
+      "required": ["charge_id", "statement_id", "kind", "occurred_at", "amount_net", "vat_amount"],
+      "additionalProperties": false,
+      "properties": {
+        "charge_id": { "type": "string" },
+        "statement_id": { "type": "string" },
+        "kind": { "$ref": "#/$defs/charge_kind" },
+        "service_code": { "$ref": "../core/schema.json#/$defs/service_code" },
+        "material_code": { "type": "string", "description": "Код из реестра materials в FSP Core" },
+        "occurred_at": { "type": "string", "format": "date-time", "description": "Момент оказания услуги; по нему начисление относится к периоду (BILL-005)" },
+        "subject_type": { "type": "string", "enum": ["supply", "order", "shipment", "return", "batch", "period"] },
+        "subject_ref": { "type": "string" },
+        "amount_net": { "type": "number" },
+        "vat_amount": { "type": "number" },
+        "calculation": { "$ref": "#/$defs/charge_calculation" },
+        "reverses_charge_id": { "type": "string" },
+        "comment": { "type": "string", "description": "Основание начисления, если нет ссылки на правило прайса (BILL-003)" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "service" } } }, "then": { "required": ["service_code", "calculation"] } },
+        { "if": { "properties": { "kind": { "const": "material" } } }, "then": { "required": ["material_code", "calculation"] } },
+        {
+          "if": { "properties": { "kind": { "enum": ["penalty", "compensation"] } } },
+          "then": { "required": ["comment"], "not": { "required": ["service_code"] } }
+        },
+        {
+          "if": { "required": ["subject_type"], "properties": { "subject_type": { "not": { "const": "period" } } } },
+          "then": { "required": ["subject_ref"] }
+        },
+        { "if": { "properties": { "kind": { "const": "correction" } } }, "then": { "required": ["reverses_charge_id", "comment"] } },
+        {
+          "if": {
+            "required": ["calculation"],
+            "properties": { "calculation": { "properties": { "calculation_method": { "const": "manual_quote" } } } }
+          },
+          "then": { "required": ["comment"] }
+        }
+      ]
+    },
+    "statement_event": {
+      "type": "object",
+      "description": "Запись истории согласования.",
+      "required": ["at", "to_state", "actor"],
+      "additionalProperties": false,
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "from_state": { "$ref": "#/$defs/statement_state" },
+        "to_state": { "$ref": "#/$defs/statement_state" },
+        "actor": { "type": "string", "enum": ["requester", "operator", "system"], "description": "system — автосогласование по сроку (BILL-011)" },
+        "comment": { "type": "string", "description": "Обязателен при оспаривании (BILL-010)" },
+        "charge_ids": { "type": "array", "items": { "type": "string" } }
+      },
+      "if": { "properties": { "to_state": { "const": "disputed" } } },
+      "then": { "required": ["comment"] }
+    },
+    "statement_payment": {
+      "type": "object",
+      "description": "Платёж по акту, подтверждённый его получателем (BILL-012).",
+      "required": ["paid_at", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "paid_at": { "type": "string", "format": "date-time" },
+        "amount": { "type": "number", "exclusiveMinimum": 0, "description": "Сумма поступления; направление платежа задаёт знак итога акта" },
+        "reference": { "type": "string", "description": "Номер платёжного документа" }
+      }
+    },
+    "statement": {
+      "type": "object",
+      "description": "Акт за период. Две независимые оси: состав и согласование (BILL-007).",
+      "required": [
+        "statement_id", "provider_id", "client_ref", "period_from", "period_to", "timezone", "currency",
+        "composition", "state", "state_changed_at", "amount_net", "vat_amount", "amount_total"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "statement_id": { "type": "string" },
+        "provider_id": { "type": "string", "description": "operator_id в FSP Core" },
+        "client_ref": { "type": "string" },
+        "period_from": { "type": "string", "format": "date", "description": "Включительно" },
+        "period_to": { "type": "string", "format": "date", "description": "Исключительно" },
+        "timezone": { "type": "string", "description": "Часовой пояс по базе IANA, в котором считаются границы периода (BILL-005)" },
+        "currency": { "type": "string" },
+        "composition": { "type": "string", "enum": ["open", "closed"], "description": "open — состав ещё меняется; closed — зафиксирован" },
+        "state": { "$ref": "#/$defs/statement_state" },
+        "state_changed_at": { "type": "string", "format": "date-time" },
+        "auto_approve_at": { "type": "string", "format": "date-time", "description": "Срок автосогласования; без него акт сам не согласуется (BILL-011)" },
+        "amount_net": { "type": "number" },
+        "vat_amount": { "type": "number" },
+        "amount_total": { "type": "number" },
+        "history": { "type": "array", "items": { "$ref": "#/$defs/statement_event" } },
+        "payments": { "type": "array", "items": { "$ref": "#/$defs/statement_payment" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "enum": ["in_review", "approved", "settled"] } } },
+          "then": { "properties": { "composition": { "const": "closed" } } }
+        }
+      ]
+    }
+  }
+}

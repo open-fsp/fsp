@@ -13,7 +13,7 @@ const appendixRegs = readdirSync(join(ROOT, "appendix"))
 
 <Base
   title="Машиночитаемые артефакты"
-  description="Схемы модулей, реестры в JSON и CSV, схема манифеста, OpenAPI модуля Quote — по постоянным адресам."
+  description="Схемы модулей, реестры в JSON и CSV, схема манифеста, OpenAPI модулей Quote, Order и Billing — по постоянным адресам."
 >
   <p class="crumbs"><a href="/">FSP</a> / Артефакты</p>
   <h1>Машиночитаемые артефакты</h1>
@@ -41,6 +41,14 @@ const appendixRegs = readdirSync(join(ROOT, "appendix"))
     <li>
       <a class="path" href="/1.0/quote/openapi.yaml">/1.0/quote/openapi.yaml</a>
       <span class="what">FSP Quote — <code>POST /quote</code>, <code>POST /quote/free-form</code></span>
+    </li>
+    <li>
+      <a class="path" href="/1.0/order/openapi.yaml">/1.0/order/openapi.yaml</a>
+      <span class="what">FSP Order — поставка на склад: черновик, слоты, подтверждение, отмена, документы</span>
+    </li>
+    <li>
+      <a class="path" href="/1.0/billing/openapi.yaml">/1.0/billing/openapi.yaml</a>
+      <span class="what">FSP Billing — акты и начисления: чтение, согласование, оспаривание</span>
     </li>
   </ul>
 

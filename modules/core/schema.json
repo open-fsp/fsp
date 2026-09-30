@@ -100,8 +100,75 @@
         "address": { "type": "string" },
         "lat": { "type": "number" },
         "lon": { "type": "number" },
-        "self_pickup": { "type": "boolean", "description": "Возможен самовывоз клиентом со склада" }
+        "self_pickup": { "type": "boolean", "description": "Возможен самовывоз клиентом со склада" },
+        "timezone": {
+          "type": "string",
+          "description": "Часовой пояс склада по базе IANA, например Europe/Moscow. В нём заданы расписание приёмки и окна отправки (INTAKE-001)"
+        }
       }
+    },
+    "package_type": {
+      "type": "string",
+      "enum": ["box", "pallet", "place"],
+      "description": "Вид грузоместа: короб, паллета или место без уточнения. Подмножество значений параметра handling_unit"
+    },
+    "error_code": {
+      "type": "string",
+      "description": "Код из закрытого реестра error_codes (ERR-001). Перечисление описывает, что сторона вправе отправить; получатель незнакомый код не отвергает, а трактует по HTTP-статусу",
+      "enum": [
+        "BAD_REQUEST",
+        "UNAUTHORIZED",
+        "FORBIDDEN",
+        "NOT_FOUND",
+        "MODULE_NOT_NEGOTIATED",
+        "IDEMPOTENCY_KEY_REUSED",
+        "RATE_LIMITED",
+        "INTERNAL",
+        "REQUIRED",
+        "REQUIRED_ONE_OF",
+        "INVALID_TYPE",
+        "INVALID_VALUE",
+        "INVALID_FORMAT",
+        "OUT_OF_RANGE",
+        "TOO_MANY_ITEMS",
+        "UNKNOWN_REFERENCE",
+        "INVALID_STATUS_TRANSITION",
+        "STATUS_NOT_ALLOWED",
+        "CONFLICT",
+        "PARTY_RULE_VIOLATION"
+      ]
+    },
+    "field_error_code": {
+      "type": "string",
+      "description": "Коды класса field из реестра error_codes: у ошибки с таким кодом обязательно поле field (ERR-003)",
+      "enum": ["REQUIRED", "REQUIRED_ONE_OF", "INVALID_TYPE", "INVALID_VALUE", "INVALID_FORMAT", "OUT_OF_RANGE", "TOO_MANY_ITEMS", "UNKNOWN_REFERENCE"]
+    },
+    "error": {
+      "type": "object",
+      "description": "Одна причина отказа. Свободный текст допускается только в message и details рядом с кодом (ERR-001).",
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "$ref": "#/$defs/error_code" },
+        "message": { "type": "string", "description": "Текст для человека. У PARTY_RULE_VIOLATION — изложение нарушенного правила (ERR-004)" },
+        "field": { "type": "string", "description": "Путь к полю от корня тела запроса, индекс с нуля: packages[0].weight_kg. Обязателен у ошибок класса field (ERR-003)" },
+        "details": { "type": "object", "description": "Дополнительные сведения в свободной форме" }
+      },
+      "if": { "properties": { "code": { "$ref": "#/$defs/field_error_code" } } },
+      "then": { "required": ["field"] }
+    },
+    "error_response": {
+      "type": "object",
+      "description": "Тело ответа на запрос, отклонённый целиком (ERR-002). Верхний уровень повторяет первую причину; если причин несколько, все они перечислены в errors.",
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "$ref": "#/$defs/error_code" },
+        "message": { "type": "string" },
+        "field": { "type": "string" },
+        "details": { "type": "object" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/error" } }
+      },
+      "if": { "properties": { "code": { "$ref": "#/$defs/field_error_code" } } },
+      "then": { "required": ["field"] }
     }
   }
 }

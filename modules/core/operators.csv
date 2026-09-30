@@ -1,5 +1,5 @@
 Оператор и склад — FSP Core
-"Кто оператор и где его склады. Общий словарь для модулей Capacity, Quote, Order и Tracking; ставки и мощности описываются в своих модулях."
+"Кто оператор и где его склады. Общий словарь для модулей Capacity, Quote, Order, Billing и Tracking; ставки и мощности описываются в своих модулях."
 Сущность,Поле,Тип,Обязательно,Назначение,Пример
 operator,operator_id,id,да,Идентификатор оператора; на него ссылается provider_id в FSP Pricing,operator_sklad
 operator,legal_name,string,да,Юрлицо,ООО «Складсервис»
@@ -14,3 +14,4 @@ operator_location,city,string,да,Город склада,Москва
 operator_location,region,string,да,Регион,Московская область
 operator_location,address,string,нет,Адрес склада,"г. Москва, ул. ..."
 operator_location,self_pickup,boolean,нет,Возможен самовывоз клиентом со склада,true
+operator_location,timezone,string,нет,Часовой пояс склада по базе IANA. В нём заданы расписание приёмки и окна отправки: без него «с 9 до 18» не сопоставимо между складами,Europe/Moscow
