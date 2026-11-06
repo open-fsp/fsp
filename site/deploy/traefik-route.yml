@@ -1,0 +1,34 @@
+# Маршрут витрины во фронтовом Traefik сервера (file-провайдер, Traefik в сети хоста).
+# Не подключается автоматически: блоки вписываются руками в /opt/traefik/dynamic.yml
+# в разделы http.routers / http.middlewares / http.services. Здесь — для восстановления.
+http:
+  routers:
+    openfsp:
+      rule: Host(`openfsp.ru`)
+      entryPoints: [websecure]
+      service: openfsp
+      middlewares: [openfsp-headers]
+      tls: {certResolver: le}
+    # www — 301 на apex: адреса схем ($id) прописаны на apex
+    openfsp-www:
+      rule: Host(`www.openfsp.ru`)
+      entryPoints: [websecure]
+      service: openfsp
+      middlewares: [openfsp-headers, openfsp-www-redirect]
+      tls: {certResolver: le}
+  middlewares:
+    openfsp-headers:
+      headers:
+        stsSeconds: 315360000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        contentTypeNosniff: true
+    openfsp-www-redirect:
+      redirectRegex:
+        regex: '^https?://www\.openfsp\.ru/(.*)'
+        replacement: 'https://openfsp.ru/${1}'
+        permanent: true
+  services:
+    openfsp:
+      loadBalancer: {servers: [{url: "http://127.0.0.1:8093"}]}
